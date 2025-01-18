@@ -4,4 +4,8 @@ export enum EventsActionTypes{
 
     GET_EVENTS= '@@service/GET_EVENTS',
     RESET = '@@service/RESET', 
+    ADD_EVENTS='@@service/ADD_EVENTS',
+    GET_EVENT_DETAILS = '@@service/GET_EVENT_DETAILS',
+    UPDATE_EVENT = '@@service/UPDATE_EVENT',
+    DELETE_EVENT = '@@service/DELETE_EVENT'
 }

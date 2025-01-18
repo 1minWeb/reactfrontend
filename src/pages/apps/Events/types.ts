@@ -3,7 +3,7 @@ export interface IEvent {
   customerId: number;
   date: string;
   eventName: string;
-  id: number;
+  id?: number;
   imageUrl: string;
   likedByIds: any[];
   location: string;
@@ -11,5 +11,5 @@ export interface IEvent {
   ratingsCount: number;
   sectionItemId: null;
   updatedAt: string;
-  userId: null;
+  userId: string | null;
 }

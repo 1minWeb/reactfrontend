@@ -2,7 +2,7 @@ import { login, logout, signup, forgotPassword, forgotPasswordConfirm } from './
 import { getAllUsers, updateUserDetails, addUser, deleteUserByIdApi } from './user';
 import { getProducts, addProduct } from './products';
 import { getServices } from './services';
-import { getEvents } from './events';
+import { addEvent, getEvents } from './events';
 
 export {
     login,
@@ -18,4 +18,5 @@ export {
     getServices,
     getEvents,
     addProduct,
+    addEvent
 };

@@ -1,20 +1,35 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Row, Col, Card, Button } from 'react-bootstrap';
+import { Row, Col, Card, Button, Alert, Spinner, Modal } from 'react-bootstrap';
 import { Column } from 'react-table';
 import { PageTitle, Table, CellFormatter, PageSize } from 'components';
-import { IEvent} from '../Events/types';
+import { IEvent } from '../Events/types';
 import { getEvents } from 'redux/events/actions';
-import useEventDetails from './hooks/useEventDetails';
+import useEventDetails from './hooks/useEvent';
 
 const Events = () => {
-    const { dispatch, events } = useEventDetails(); // Assume totalRecords is returned by the server
-    console.log(events)
+    const { dispatch, events, loading, error, handleDeleteAction } = useEventDetails(); // Assume totalRecords is returned by the server
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [deleteEventId, setDeleteEventId] = useState(null);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+    const confirmDelete = () => {
+        if (deleteEventId) {
+            handleDeleteAction(deleteEventId);
+            setDeleteEventId(null);
+        }
+    };
+    const handleSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(1); // Reset to the first page when page size changes
+    };
     // Fetch events based on the current page and page size
     useEffect(() => {
-        dispatch(getEvents({ limit: 10, page: 1 }));
+        dispatch(getEvents({ limit: pageSize, page: currentPage }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [dispatch, pageSize, currentPage]);
 
     const columns: ReadonlyArray<Column<any>> = [
         {
@@ -24,7 +39,7 @@ const Events = () => {
             Cell: ({ row }: CellFormatter<any>) => (
                 <>
                     <p className="m-0 d-inline-block align-middle font-16">
-                        <Link to="/apps/events/details" className="text-body">
+                        <Link to="/apps/events/details/${row.original.id}" className="text-body">
                             {row.original.eventName}
                         </Link>
                     </p>
@@ -56,13 +71,20 @@ const Events = () => {
             accessor: 'action',
             Cell: ({ row }: CellFormatter<any>) => (
                 <>
-                    <Link to="#" className="action-icon">
+                    <Link to={`/apps/events/addEvent/${row.original.id}`} className="action-icon">
                         <i className="mdi mdi-eye"></i>
                     </Link>
-                    <Link to="#" className="action-icon">
+                    <Link to={`/apps/events/addEvent/${row.original.id}`} className="action-icon">
                         <i className="mdi mdi-square-edit-outline"></i>
                     </Link>
-                    <Link to="#" className="action-icon">
+                    <Link
+                        to="#"
+                        className="action-icon"
+                        onClick={(event: any) => {
+                            event.preventDefault();
+
+                            setDeleteEventId(row.original.id);
+                        }}>
                         <i className="mdi mdi-delete"></i>
                     </Link>
                 </>
@@ -92,7 +114,7 @@ const Events = () => {
                         <Card.Body>
                             <Row className="mb-2">
                                 <Col sm={5}>
-                                    <Link to="#" className="btn btn-danger mb-2">
+                                    <Link id="0" to={`/apps/events/addEvent/0`} className="btn btn-danger mb-2">
                                         <i className="mdi mdi-plus-circle me-2"></i> Add Event
                                     </Link>
                                 </Col>
@@ -113,11 +135,17 @@ const Events = () => {
                                     </div>
                                 </Col>
                             </Row>
-                            {events?.length > 0 ? (
+                            {loading ? (
+                                <div className="text-center my-3">
+                                    <Spinner animation="border" />
+                                </div>
+                            ) : error ? (
+                                <Alert variant="danger">{error}</Alert>
+                            ) : events?.length > 0 ? (
                                 <Table<IEvent>
                                     columns={columns}
                                     data={events}
-                                    pageSize={10}
+                                    pageSize={pageSize}
                                     sizePerPageList={sizePerPageList}
                                     isSortable={true}
                                     pagination={true}
@@ -131,6 +159,22 @@ const Events = () => {
                     </Card>
                 </Col>
             </Row>
+            <Modal show={!!deleteEventId} onHide={() => setDeleteEventId(null)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Delete</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Are you sure you want to delete this event?</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="danger" onClick={confirmDelete}>
+                        Delete
+                    </Button>
+                    <Button variant="secondary" onClick={() => setDeleteEventId(null)}>
+                        Cancel
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 };

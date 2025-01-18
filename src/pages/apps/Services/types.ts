@@ -1,4 +1,4 @@
-export interface Service {
+export interface IService {
   id?: number;
   tenantId?: string;
   name: string;

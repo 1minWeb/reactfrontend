@@ -1,20 +1,36 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Row, Col, Card, Button } from 'react-bootstrap';
+import { Row, Col, Card, Button, Modal } from 'react-bootstrap';
 import { Column } from 'react-table';
 import { PageTitle, Table, CellFormatter, PageSize } from 'components';
-import { Service } from './types';
+import { IService } from './types';
 import useServiceDetails from './hooks/useServiceDetails';
 import { getServices } from 'redux/services/actions';
 
 const Services = () => {
-    const { dispatch, services } = useServiceDetails(); // Assume totalRecords is returned by the server
-    console.log(services)
+    const { dispatch, services, loading, error, handleDeleteAction } = useServiceDetails(); // Assume totalRecords is returned by the server
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [deleteServiceId, setDeleteServiceId] = useState<number | null>(null);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+    const handleSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(1); // Reset to the first page when page size changes
+    };
+    const confirmDelete = () => {
+        if (deleteServiceId) {
+            handleDeleteAction(deleteServiceId);
+            setDeleteServiceId(null);
+        }
+    };
     // Fetch services based on the current page and page size
     useEffect(() => {
-        dispatch(getServices({ limit: 10, page: 1, tenantId: 'tenant1' }));
+        dispatch(getServices({ limit: pageSize, page: currentPage, tenantId: 'tenant1' }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [dispatch, pageSize, currentPage]);
 
     const columns: ReadonlyArray<Column<any>> = [
         {
@@ -30,7 +46,7 @@ const Services = () => {
                         height="48"
                     /> */}
                     <p className="m-0 d-inline-block align-middle font-16">
-                        <Link to="/apps/services/details" className="text-body">
+                        <Link to={`/apps/services/details/${row.original.id}`} className="text-body">
                             {row.original.name}
                         </Link>
                     </p>
@@ -65,15 +81,21 @@ const Services = () => {
         {
             Header: 'Action',
             accessor: 'action',
-            Cell: ({ row }: CellFormatter<Service>) => (
+            Cell: ({ row }: CellFormatter<IService>) => (
                 <>
-                    <Link to="#" className="action-icon">
+                    <Link to={`/apps/services/addService/${row.original.id}`} className="action-icon">
                         <i className="mdi mdi-eye"></i>
                     </Link>
-                    <Link to="#" className="action-icon">
+                    <Link to={`/apps/services/addService/${row.original.id}`} className="action-icon">
                         <i className="mdi mdi-square-edit-outline"></i>
                     </Link>
-                    <Link to="#" className="action-icon">
+                    <Link
+                        to="#"
+                        className="action-icon"
+                        onClick={(event: React.MouseEvent) => {
+                            event.preventDefault();
+                            setDeleteServiceId(row.original.id ?? null);
+                        }}>
                         <i className="mdi mdi-delete"></i>
                     </Link>
                 </>
@@ -103,7 +125,7 @@ const Services = () => {
                         <Card.Body>
                             <Row className="mb-2">
                                 <Col sm={5}>
-                                    <Link to="#" className="btn btn-danger mb-2">
+                                    <Link id="0" to={`/apps/services/addService/0`} className="btn btn-danger mb-2">
                                         <i className="mdi mdi-plus-circle me-2"></i> Add Service
                                     </Link>
                                 </Col>
@@ -125,7 +147,7 @@ const Services = () => {
                                 </Col>
                             </Row>
                             {services?.length > 0 ? (
-                                <Table<Service>
+                                <Table<IService>
                                     columns={columns}
                                     data={services}
                                     pageSize={10}
@@ -142,6 +164,22 @@ const Services = () => {
                     </Card>
                 </Col>
             </Row>
+            <Modal show={!!deleteServiceId} onHide={() => setDeleteServiceId(null)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Delete</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Are you sure you want to delete this service?</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="danger" onClick={confirmDelete}>
+                        Delete
+                    </Button>
+                    <Button variant="secondary" onClick={() => setDeleteServiceId(null)}>
+                        Cancel
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 };

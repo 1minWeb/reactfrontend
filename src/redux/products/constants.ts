@@ -4,4 +4,5 @@ export enum ProductActionTypes {
 
     GET_PRODUCTS = '@@product/GET_PRODUCTS',
     ADD_PRODUCT = '@@product/ADD_PRODUCT',
+    UPLOAD_IMAGE = '@@product/UPLOAD_IMAGE',
 }

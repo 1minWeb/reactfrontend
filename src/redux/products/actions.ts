@@ -5,7 +5,8 @@ export type ProductActionType = {
         | ProductActionTypes.API_RESPONSE_SUCCESS
         | ProductActionTypes.API_RESPONSE_ERROR
         | ProductActionTypes.GET_PRODUCTS
-        | ProductActionTypes.ADD_PRODUCT;
+        | ProductActionTypes.ADD_PRODUCT
+        | ProductActionTypes.UPLOAD_IMAGE;
     payload: {} | string;
 };
 
@@ -55,5 +56,9 @@ export const getProducts = (params: any): ProductActionType => ({
 
 export const addProduct = (params: any): ProductActionType => ({
     type: ProductActionTypes.ADD_PRODUCT,
+    payload: params,
+});
+export const uploadImage = (params?: any): ProductActionType => ({
+    type: ProductActionTypes.UPLOAD_IMAGE,
     payload: params,
 });

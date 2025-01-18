@@ -1,224 +1,32 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { FileType, FileUploader, FormInput, PageTitle } from 'components';
+import { FileUploader, FormInput, PageTitle } from 'components';
 import { t } from 'i18next';
-import { ChangeEvent, Key, ReactChild, ReactFragment, ReactPortal, useEffect, useState } from 'react';
-import { Alert, Button, Card, Col, Form, Modal, Row, Table } from 'react-bootstrap';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useUser } from 'hooks';
+import { Alert, Button, Card, Col, Modal, Row, Table } from 'react-bootstrap';
 import useProductDetails from './hooks/useProductDetails';
-import { addProduct } from 'redux/actions';
+import { MediaItem } from './hooks/types';
+import ProductTierTable from './ProductTierTable';
 
 const AddProduct = () => {
-    interface MediaItem {
-        name?: string;
-        url: string;
-        mediaType: string;
-        isPrimary: boolean;
-    }
 
-    interface Tier {
-        tierType: string;
-        actualPrice: number;
-        discountPer: number;
-        currency?: string;
-        priceWithDiscount: number;
-        itemsIncluded: string[];
-    }
-
-    interface ProductDetails {
-        title: string;
-        description: string;
-        category: string;
-        sku: string;
-        isPremium: boolean;
-        thumbnailUrl: string;
-        media: MediaItem[];
-        tiers: Tier[]; // Replace `any` with a proper type if known
-    }
-
-    const [productDetails, setProductDetails] = useState<ProductDetails>({
-        title: '',
-        description: '',
-        category: '',
-        sku: '',
-        isPremium: false,
-        thumbnailUrl: '',
-        media: [],
-        tiers: [
-            {
-                tierType: 'Budget',
-                actualPrice: 0,
-                discountPer: 0,
-                // currency: 'INR',
-                priceWithDiscount: 0,
-                itemsIncluded: [],
-            },
-            {
-                tierType: 'Standard',
-                actualPrice: 0,
-                discountPer: 0,
-                // currency: 'INR',
-                priceWithDiscount: 0,
-                itemsIncluded: [],
-            },
-            {
-                tierType: 'Premium',
-                actualPrice: 0,
-                discountPer: 0,
-                // currency: 'INR',
-                priceWithDiscount: 0,
-                itemsIncluded: [],
-            },
-        ],
-    });
-    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-    const [loading, setLoading] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const [modalImage, setModalImage] = useState<string>('');
-    const { dispatch, isProductCreated, createdProduct } = useProductDetails();
-    const params = useParams();
-    const productId = params.Id ? params.Id : '0'; // todo for edit
-
-    const navigate = useNavigate();
-    const loggedInUser = useUser()[0];
-
-    const validateForm = () => {
-        const errors: Record<string, string> = {};
-
-        if (!productDetails.title.trim()) errors.title = 'Title is required.';
-        if (!productDetails.description.trim()) errors.description = 'Description is required.';
-        if (!productDetails.category.trim()) errors.category = 'Category is required.';
-        if (!productDetails.sku.trim()) errors.sku = 'SKU is required.';
-        if (!productDetails.thumbnailUrl.trim()) errors.thumbnailUrl = 'Thumbnail URL is required.';
-
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target;
-        setProductDetails((prevDetails) => ({
-            ...prevDetails,
-            [name]: type === 'checkbox' && e.target instanceof HTMLInputElement ? e.target.checked : value,
-        }));
-    };
-
-    const handleImageUpload = (files: FileType[]) => {
-        const uploadedImages = files.map((file) => ({
-            url: file.preview || URL.createObjectURL(file),
-            mediaType: 'IMAGE',
-            isPrimary: false,
-            // name: file.name,
-        }));
-        setProductDetails((prevDetails) => ({
-            ...prevDetails,
-            media: [...prevDetails.media, ...uploadedImages],
-        }));
-    };
-
-    const setPrimaryImage = (index: number) => {
-        setProductDetails((prevDetails) => {
-            const updatedMedia = prevDetails.media.map((item, i) => ({
-                ...item,
-                isPrimary: i === index,
-            }));
-            return { ...prevDetails, media: updatedMedia, thumbnailUrl: updatedMedia[index].url };
-        });
-    };
-
-    const removeImage = (index: number) => {
-        setProductDetails((prevDetails) => ({
-            ...prevDetails,
-            media: prevDetails.media.filter((_, i) => i !== index),
-        }));
-    };
-
+    const { removeImage,
+        setPrimaryImage,
+        handleImageUpload,
+        handleInputChange,
+        handleSubmit,
+        addTierItem,
+        handleTierChange,
+        setModalImage,
+        setShowModal,
+        formErrors,
+        loading,
+        productDetails,
+        showModal,
+        modalImage
+    } = useProductDetails();
     const openImageModal = (image: string) => {
         setModalImage(image);
         setShowModal(true);
     };
-
-    const handleTierChange = (index: number, field: keyof Tier, value: any) => {
-        setProductDetails((prevDetails) => {
-            const updatedTiers = [...prevDetails.tiers];
-            updatedTiers[index] = {
-                ...updatedTiers[index],
-                [field]: value,
-            };
-
-            if (field === 'actualPrice' || field === 'discountPer') {
-                updatedTiers[index].priceWithDiscount =
-                    updatedTiers[index].actualPrice -
-                    (updatedTiers[index].actualPrice * updatedTiers[index].discountPer) / 100;
-            }
-
-            return { ...prevDetails, tiers: updatedTiers };
-        });
-    };
-
-    const addTierItem = (index: number, item: string) => {
-        setProductDetails((prevDetails) => {
-            const updatedTiers = [...prevDetails.tiers];
-            if (item.trim()) {
-                updatedTiers[index].itemsIncluded.push(item);
-            }
-            return { ...prevDetails, tiers: updatedTiers };
-        });
-    };
-
-    // Custom Tiertype not included right now
-    // const addCustomTier = (customTierType: string) => {
-    //     if (customTierType.trim()) {
-    //         setProductDetails((prevDetails) => ({
-    //             ...prevDetails,
-    //             tiers: [
-    //                 ...prevDetails.tiers,
-    //                 {
-    //                     tierType: customTierType,
-    //                     actualPrice: 0,
-    //                     discountPer: 0,
-    //                     currency: 'INR',
-    //                     priceWithDiscount: 0,
-    //                     itemsIncluded: [],
-    //                 },
-    //             ],
-    //         }));
-    //     }
-    // };
-
-    const handleSubmit = async () => {
-        if (!validateForm()) return;
-
-        setLoading(true);
-
-        try {
-            // Add API call logic here
-            // console.log('Submitting product details:', productDetails, 'userr', loggedInUser, {
-            //     ...productDetails,
-            //     createdBy: loggedInUser.email,
-            //     updatedBy: loggedInUser.email,
-            // });
-
-            dispatch(
-                addProduct({
-                    productDetails: {
-                        ...productDetails,
-                        createdBy: loggedInUser.email,
-                        updatedBy: loggedInUser.email,
-                    },
-                })
-            );
-            navigate('/apps/products');
-        } catch (err) {
-            console.error('Failed to add product:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        console.log('isPrroductcreated', createdProduct, isProductCreated);
-    }, [createdProduct]);
 
     return (
         <>
@@ -341,7 +149,7 @@ const AddProduct = () => {
                                             gap: '20px',
                                             paddingTop: '25px',
                                         }}>
-                                        {productDetails.media.map((media, index) => (
+                                        {productDetails.media.length > 0 && productDetails.media.map((media: MediaItem, index: number) => (
                                             <div
                                                 key={index}
                                                 className="image-preview position-relative p-2 shadow-sm rounded"
@@ -421,109 +229,9 @@ const AddProduct = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {productDetails.tiers.map((tier, index) => (
-                                                <tr key={index}>
-                                                    <td>
-                                                        {tier.tierType !== 'Custom' ? (
-                                                            <Form.Select
-                                                                value={tier.tierType}
-                                                                onChange={(e) =>
-                                                                    handleTierChange(index, 'tierType', e.target.value)
-                                                                }>
-                                                                <option value="Budget">Budget</option>
-                                                                <option value="Standard">Standard</option>
-                                                                <option value="Premium">Premium</option>
-                                                            </Form.Select>
-                                                        ) : (
-                                                            <Form.Control
-                                                                type="text"
-                                                                value={tier.tierType}
-                                                                onChange={(e) =>
-                                                                    handleTierChange(index, 'tierType', e.target.value)
-                                                                }
-                                                            />
-                                                        )}
-                                                    </td>
-                                                    <td>
-                                                        <Form.Control
-                                                            type="number"
-                                                            value={tier.actualPrice}
-                                                            onChange={(e) =>
-                                                                handleTierChange(
-                                                                    index,
-                                                                    'actualPrice',
-                                                                    parseFloat(e.target.value) || 0
-                                                                )
-                                                            }
-                                                        />
-                                                    </td>
-                                                    <td>
-                                                        <Form.Control
-                                                            type="number"
-                                                            value={tier.discountPer}
-                                                            onChange={(e) =>
-                                                                handleTierChange(
-                                                                    index,
-                                                                    'discountPer',
-                                                                    parseFloat(e.target.value) || 0
-                                                                )
-                                                            }
-                                                        />
-                                                    </td>
-                                                    {/* For Currency */}
-                                                    {/* <td>
-                                                        <Form.Select
-                                                            value={tier.currency}
-                                                            onChange={(e) =>
-                                                                handleTierChange(index, 'currency', e.target.value)
-                                                            }>
-                                                            <option value="INR">INR</option>
-                                                            <option value="USD">USD</option>
-                                                        </Form.Select>
-                                                    </td> */}
-                                                    <td>
-                                                        <Form.Control
-                                                            type="text"
-                                                            value={tier.priceWithDiscount.toFixed(2)}
-                                                            readOnly
-                                                        />
-                                                    </td>
-                                                    <td>
-                                                        <div className="d-flex flex-wrap align-items-center">
-                                                            {tier.itemsIncluded.map(
-                                                                (
-                                                                    item:
-                                                                        | boolean
-                                                                        | ReactChild
-                                                                        | ReactFragment
-                                                                        | ReactPortal
-                                                                        | null
-                                                                        | undefined,
-                                                                    idx: Key | null | undefined
-                                                                ) => (
-                                                                    <span
-                                                                        key={idx}
-                                                                        className="badge bg-primary me-1 mb-1">
-                                                                        {item}
-                                                                    </span>
-                                                                )
-                                                            )}
-                                                            <Form.Control
-                                                                type="text"
-                                                                placeholder={t('Add Item')}
-                                                                className="me-2 mt-1"
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === 'Enter') {
-                                                                        e.preventDefault();
-                                                                        addTierItem(index, e.currentTarget.value);
-                                                                        e.currentTarget.value = '';
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            <ProductTierTable productDetails={productDetails}
+                                                handleTierChange={handleTierChange}
+                                                addTierItem={addTierItem} />
                                         </tbody>
                                     </Table>
                                     {/* For Custom Tier can be used Later */}

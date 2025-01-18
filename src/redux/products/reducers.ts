@@ -14,11 +14,13 @@ type ProductActionType = {
         | ProductActionTypes.API_RESPONSE_SUCCESS
         | ProductActionTypes.API_RESPONSE_ERROR
         | ProductActionTypes.GET_PRODUCTS
-        | ProductActionTypes.ADD_PRODUCT;
+        | ProductActionTypes.ADD_PRODUCT
+        | ProductActionTypes.UPLOAD_IMAGE;
     payload: {
         actionType?: string;
-        data?: Product[] | {};
+        data?: Product[] | {}|any;
         error?: string;
+        uploadedUrl?: any
     };
 };
 
@@ -44,6 +46,13 @@ const Products = (state: State = INIT_STATE, action: ProductActionType) => {
                         isProductCreated: true,
                     };
                 }
+                case ProductActionTypes.UPLOAD_IMAGE: {
+                    return {
+                        ...state,
+                        uploadedImage: action.payload?.data?.uploadedUrl,
+                        isProductCreated: true,
+                    };
+                }
                 default:
                     return { ...state };
             }
@@ -62,6 +71,13 @@ const Products = (state: State = INIT_STATE, action: ProductActionType) => {
                         isProductCreated: false,
                     };
                 }
+                case ProductActionTypes.UPLOAD_IMAGE: {
+                    return {
+                        ...state,
+                        uploadedImage: null,
+                        isProductCreated: false,
+                    };
+                }
                 default:
                     return { ...state };
             }
@@ -69,6 +85,8 @@ const Products = (state: State = INIT_STATE, action: ProductActionType) => {
         case ProductActionTypes.GET_PRODUCTS:
             return { ...state, loading: true };
         case ProductActionTypes.ADD_PRODUCT:
+            return { ...state, loading: true };
+        case ProductActionTypes.UPLOAD_IMAGE:
             return { ...state, loading: true };
         default:
             return { ...state };

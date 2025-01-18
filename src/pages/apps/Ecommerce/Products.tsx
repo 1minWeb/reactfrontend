@@ -1,19 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Row, Col, Card, Button } from 'react-bootstrap';
 import classNames from 'classnames';
 import { Column } from 'react-table';
-import { PageTitle, Table, CellFormatter, PageSize } from 'components';
+import { PageTitle, Table, CellFormatter, PageSize, Loader } from 'components';
 import { Product } from './types';
 import useProductDetails from './hooks/useProductDetails';
 import { getProducts } from 'redux/actions';
 
 const Products = () => {
-    const { dispatch, products } = useProductDetails(); // Assume totalRecords is returned by the server
-
-    // Fetch products based on the current page and page size
+    const { dispatch, products, loading } = useProductDetails(); // Assume totalRecords is returned by the server
     useEffect(() => {
-        dispatch(getProducts({ limit: 10, page: 1, customerId: 3 }));
+        dispatch(getProducts({ limit: 50, page: 1, customerId: 3, sortBy: 'id' }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -22,21 +20,59 @@ const Products = () => {
             Header: 'Product',
             accessor: 'title',
             defaultCanSort: true,
-            Cell: ({ row }: CellFormatter<any>) => (
-                <>
-                    <img
-                        src={row.original.thumbnailUrl}
-                        alt={row.original.title}
-                        className="rounded me-3"
-                        height="48"
-                    />
-                    <p className="m-0 d-inline-block align-middle font-16">
-                        <Link to="/apps/ecommerce/details" className="text-body">
-                            {row.original.title}
-                        </Link>
-                    </p>
-                </>
-            ),
+            Cell: ({ row }: { row: any }) => {
+                const [isLoading, setIsLoading] = useState(true);
+
+                const handleLoad = () => {
+                    setIsLoading(false);
+                };
+
+                const handleError = () => {
+                    setIsLoading(false); // Stop loading even if an error occurs
+                };
+
+                return (
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        {/* Image container with loader */}
+                        <div style={{ position: "relative", height: "48px", width: "69px", marginRight: "12px" }}>
+                            {isLoading && (
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        height: "100%",
+                                        width: "100%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "#f0f0f0", // Optional background for loader
+                                        borderRadius: "4px",
+                                    }}
+                                >
+                                    <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                                </div>
+                            )}
+                            <img
+                                src={row.original.thumbnailUrl}
+                                alt={row.original.title}
+                                className="rounded"
+                                height="48"
+                                width="70"
+                                onLoad={handleLoad}
+                                onError={handleError}
+                                style={{ display: isLoading ? "none" : "block" }} // Hide image until loaded
+                            />
+                        </div>
+                        {/* Text and link */}
+                        <p className="m-0 d-inline-block align-middle font-16">
+                            <Link to="/apps/ecommerce/details" className="text-body">
+                                {row.original.title}
+                            </Link>
+                        </p>
+                    </div>
+                );
+            },
         },
         {
             Header: 'Category',
@@ -137,6 +173,8 @@ const Products = () => {
                                     </div>
                                 </Col>
                             </Row>
+                            {loading && <Loader />
+                            }
                             {products?.length > 0 ? (
                                 <Table<Product>
                                     columns={columns}

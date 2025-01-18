@@ -4,6 +4,7 @@ import { SagaIterator } from '@redux-saga/core';
 import { getProducts as getProductsApi, addProduct as addProductApi } from 'helpers';
 import { productApiResponseSuccess, productApiResponseError } from './actions';
 import { ProductActionTypes } from './constants';
+import { uploadImageApi } from 'helpers/api/products';
 
 // type UserData = {
 //     payload: {
@@ -46,6 +47,17 @@ function* addProduct({ payload: { productDetails } }: any): SagaIterator {
         yield put(productApiResponseError(ProductActionTypes.ADD_PRODUCT, error));
     }
 }
+function* uploadImage(payload: any): SagaIterator {
+    try {
+        console.log(payload)
+        const response = yield call(uploadImageApi, { file: payload.file });
+        const createdProduct = response?.data;
+        yield put(productApiResponseSuccess(ProductActionTypes.UPLOAD_IMAGE, createdProduct));
+    } catch (error: any) {
+        console.log('coming here err', error);
+        yield put(productApiResponseError(ProductActionTypes.UPLOAD_IMAGE, error));
+    }
+}
 
 export function* watchGetProducts() {
     yield takeEvery(ProductActionTypes.GET_PRODUCTS, getProducts);
@@ -54,9 +66,12 @@ export function* watchGetProducts() {
 export function* watchAddProduct() {
     yield takeEvery(ProductActionTypes.ADD_PRODUCT, addProduct);
 }
+export function* watchUploadImage() {
+    yield takeEvery(ProductActionTypes.UPLOAD_IMAGE, uploadImage);
+}
 
 function* productSaga() {
-    yield all([fork(watchGetProducts), fork(watchAddProduct)]);
+    yield all([fork(watchGetProducts), fork(watchAddProduct), fork(watchUploadImage)]);
 }
 
 export default productSaga;

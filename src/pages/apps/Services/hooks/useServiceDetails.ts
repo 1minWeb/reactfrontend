@@ -3,6 +3,8 @@ import { useRedux } from 'hooks';
 import { IService } from '../types';
 import { addService, getServices, updateServiceByIdAction, deleteServiceByIdAction } from 'redux/actions';
 import { useNavigate, useParams } from 'react-router-dom';
+import { FileType } from 'components';
+import { uploadImageApi } from 'helpers/api/products';
 
 export default function useServiceDetails() {
     const { dispatch, appSelector } = useRedux();
@@ -36,17 +38,18 @@ export default function useServiceDetails() {
     const params = useParams<{ Id: string }>();
     const serviceId = params.Id || '0';
 
-    const INIT_SERVICE_DETAILS = {
+    const INIT_SERVICE_DETAILS: IService = {
         name: '',
         description: '',
-        discount: 0, // Updated to be a number
+        discount: 0,
         reviews: 0,
         rating: 0,
-        imageUrl: 'https://d2uw10xs7zocn6.cloudfront.net/happy_ganesh_chaturthi.png',
+        imageUrl: '',
         price: 0,
+        media: [],
     };
 
-    const [serviceDetails, setServiceDetails] = useState(INIT_SERVICE_DETAILS);
+    const [serviceDetails, setServiceDetails] = useState<IService>(INIT_SERVICE_DETAILS);
 
     /**
      * Fetch all services
@@ -60,60 +63,105 @@ export default function useServiceDetails() {
     };
 
     /**
+     * Handles image upload
+     */
+    const handleImageUpload = async (files: FileType[]) => {
+        setLoading(true);
+        try {
+            const uploadPromises = files.map(async (file) => {
+
+                const response = await uploadImageApi({ file });
+                const image = {
+                    url: response.data.uploadedUrl,
+                    mediaType: 'IMAGE',
+                    isPrimary: false,
+                };
+                setServiceDetails((prev) => ({
+                    ...prev,
+                    imageUrl:response.data.uploadedUrl
+                }))
+                return image;
+            });
+
+            const uploadedImages = await Promise.all(uploadPromises);
+
+            setServiceDetails((prevDetails) => ({
+                ...prevDetails,
+                media: [...prevDetails?.media, ...uploadedImages],
+            }));
+        } catch (error) {
+            console.error('Error uploading images:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /**
+     * Set primary image
+     */
+    const setPrimaryImage = (index: number) => {
+        setServiceDetails((prevDetails) => {
+            const updatedMedia = prevDetails.media.map((item, i) => ({
+                ...item,
+                isPrimary: i === index,
+            }));
+            return { ...prevDetails, media: updatedMedia, imageUrl: updatedMedia[index].url };
+        });
+    };
+
+    /**
+     * Remove image
+     */
+    const removeImage = (index: number) => {
+        setServiceDetails((prevDetails) => ({
+            ...prevDetails,
+            media: prevDetails.media.filter((_, i) => i !== index),
+        }));
+    };
+
+    /**
      * Fetch service details if serviceId exists
      */
     useEffect(() => {
         if (serviceId !== '0' && serviceDetailsById) {
             setServiceDetails({
-                name: serviceDetailsById.name || '',
-                description: serviceDetailsById.description || '',
-                discount: serviceDetailsById.discount || 0, // Ensure discount is a number
-                reviews: serviceDetailsById.reviews || 0,
-                rating: serviceDetailsById.rating || 0,
-                imageUrl: serviceDetailsById.imageUrl || '',
-                price: serviceDetailsById.price || 0,
+                ...INIT_SERVICE_DETAILS,
+                ...serviceDetailsById,
             });
         }
     }, [serviceId, serviceDetailsById]);
 
     /**
-     * Handles the image change
-     */
-    const handleImgChange = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, selectedImg: string) => {
-        e.preventDefault();
-        setSelectedServiceImg(selectedImg);
-        return false;
-    };
-
-    /**
      * Handles form field updates
      */
-    const handleFormRecord = (event: any) => {
-        const field = event.target.name;
-        const value = field === 'discount' || field === 'price' ? Number(event.target.value) : event.target.value;
-        setServiceDetails({ ...serviceDetails, [field]: value });
+    const handleFormRecord = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setServiceDetails((prevDetails) => ({
+            ...prevDetails,
+            [name]: ['discount', 'price', 'reviews', 'rating'].includes(name) ? Number(value) : value,
+        }));
     };
 
     /**
      * Validates service fields
      */
     const validateFields = () => {
-        setTimeout(() => {
-            setFormErrors('');
-        }, 3000);
-        if (!(serviceDetails.name && serviceDetails.price && serviceDetails.description)) {
+        setTimeout(() => setFormErrors(''), 3000);
+
+        if (!serviceDetails.name || !serviceDetails.price || !serviceDetails.description) {
             setFormErrors('Name, Price, and Description are required');
             return false;
-        } else if (serviceDetails.name.trim() === '') {
+        }
+        if (serviceDetails.name.trim() === '') {
             setFormErrors('Enter a valid service name');
             return false;
-        } else if (isNaN(Number(serviceDetails.price)) || Number(serviceDetails.price) <= 0) {
+        }
+        if (isNaN(serviceDetails.price) || serviceDetails.price <= 0) {
             setFormErrors('Enter a valid price');
             return false;
-        } else {
-            setFormErrors('');
-            return true;
         }
+        setFormErrors('');
+        return true;
     };
 
     /**
@@ -122,14 +170,16 @@ export default function useServiceDetails() {
     const onSubmit = async () => {
         if (validateFields()) {
             setLoading(true);
+            let updatedServiceDetails:any  = {...serviceDetails}
+            updatedServiceDetails.media = undefined
             try {
                 if (serviceId !== '0') {
-                    dispatch(updateServiceByIdAction(serviceDetails));
+                    dispatch(updateServiceByIdAction(updatedServiceDetails));
                 } else {
-                    dispatch(addService(serviceDetails));
+                    dispatch(addService(updatedServiceDetails));
                 }
                 await fetchAllServices();
-                setServiceDetails(INIT_SERVICE_DETAILS); // Reset service details after submission
+                setServiceDetails(INIT_SERVICE_DETAILS);
                 navigate('/apps/services');
             } catch (err) {
                 setError('An error occurred while submitting the form.');
@@ -138,11 +188,17 @@ export default function useServiceDetails() {
             }
         }
     };
-
+   /** Handles the image changes
+    */
+   const handleImgChange = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, selectedImg: string) => {
+       e.preventDefault();
+       setSelectedServiceImg(selectedImg);
+       return false;
+   };
     /**
      * Handles delete action
      */
-    const handleDeleteAction = (id: any) => {
+    const handleDeleteAction = (id: number) => {
         dispatch(deleteServiceByIdAction(id));
         dispatch(getServices({ limit: 10, page: 1 }));
     };
@@ -165,5 +221,8 @@ export default function useServiceDetails() {
         serviceDetailsById,
         setServiceDetails,
         handleDeleteAction,
+        handleImageUpload,
+        setPrimaryImage,
+        removeImage,
     };
 }

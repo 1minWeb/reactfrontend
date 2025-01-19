@@ -18,6 +18,8 @@ const ServiceDetails = () => {
         onSubmit,
         isServiceCreated,
         serviceDetailsById,
+        handleImageUpload,
+       // removeiMage
     } = useService();
 
     const params = useParams<{ Id?: string }>();
@@ -158,13 +160,22 @@ const ServiceDetails = () => {
                                         onChange={handleFormRecord}
                                     />
 
-                                    <FileUploader onFileUpload={() => {}} showPreview={false} />
                                     <div className="mb-3 mb-0 text-center">
                                         <Button variant="primary" disabled={loading} onClick={onSubmit}>
                                             {t('Submit')}
                                         </Button>
                                     </div>
                                 </form>
+                                
+                            </Col>
+                            <Col      md={6}
+                                style={{
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginLeft: 'auto',
+                                    marginRight: 'auto',
+                                }}>
+                            <FileUploader onFileUpload={handleImageUpload} showPreview={false} />
                             </Col>
                         </Card.Body>
                     </Card>

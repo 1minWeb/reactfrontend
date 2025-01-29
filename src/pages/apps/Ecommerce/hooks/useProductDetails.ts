@@ -1,13 +1,13 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import productImg1 from 'assets/images/products/product-5.jpg';
 import { useRedux, useUser } from 'hooks';
 import { Product } from '../types';
 import { ProductDetails, Tier } from './types';
 import { FileType } from 'components';
 import { uploadImageApi } from 'helpers/api/products';
-import { addProduct } from 'redux/actions';
+import { addProduct, deleteProductByIdAction, getProducts, updateProductByIdAction } from 'redux/actions';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function useProductDetails() {
     const { dispatch, appSelector } = useRedux();
@@ -15,8 +15,10 @@ export default function useProductDetails() {
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [showModal, setShowModal] = useState(false);
     const [modalImage, setModalImage] = useState<string>('');
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
     const loggedInUser = useUser()[0];
+
     const {
         products,
         totalRecords,
@@ -24,13 +26,16 @@ export default function useProductDetails() {
         isProductCreated,
         uploadedImage,
         loading,
+        productDetailsById,
     }: {
         products: Product[];
         totalRecords: number;
         createdProduct: Product;
         isProductCreated: boolean;
-            uploadedImage: string;
-            loading: boolean;
+        uploadedImage: string;
+        loading: boolean;
+
+        productDetailsById: Product | null;
     } = appSelector((state: any) => ({
         products: state.Products.results,
         totalRecords: state.Products.totalRecords,
@@ -38,6 +43,8 @@ export default function useProductDetails() {
         isProductCreated: state.Products.isProductCreated,
         uploadedImage: state.Products.uploadedImage,
         loading: state.Products.loading,
+        productDetailsById: state.Products.productDetailsById,
+        // loading: state.Products.loading,
     }));
 
     const [productDetails, setProductDetails] = useState<ProductDetails>({
@@ -56,6 +63,7 @@ export default function useProductDetails() {
                 // currency: 'INR',
                 priceWithDiscount: 0,
                 itemsIncluded: [],
+                stockAvailable: 100,
             },
             {
                 tierType: 'Standard',
@@ -64,6 +72,7 @@ export default function useProductDetails() {
                 // currency: 'INR',
                 priceWithDiscount: 0,
                 itemsIncluded: [],
+                stockAvailable: 100,
             },
             {
                 tierType: 'Premium',
@@ -72,6 +81,7 @@ export default function useProductDetails() {
                 // currency: 'INR',
                 priceWithDiscount: 0,
                 itemsIncluded: [],
+                stockAvailable: 100,
             },
         ],
     });
@@ -83,6 +93,17 @@ export default function useProductDetails() {
         setSelectedProductImg(selectedImg);
         return false;
     };
+    /**
+     * Handles event deletion
+     */
+    const handleDeleteAction = async (id: string) => {
+        await dispatch(deleteProductByIdAction(id));
+
+        setTimeout(() => {
+            dispatch(getProducts({ limit: 10, page: 1 }));
+        }, 2500);
+    };
+
     const validateForm = () => {
         const errors: Record<string, string> = {};
         if (!productDetails.title.trim()) errors.title = 'Title is required.';
@@ -141,7 +162,33 @@ export default function useProductDetails() {
             media: prevDetails.media.filter((_, i) => i !== index),
         }));
     };
-
+    const params = useParams<{ Id?: string }>();
+    const productId = params.Id || '0';
+    const INIT_PRODUCT_DETAILS: Product = {
+        media: [],
+        title: '',
+        description: '',
+        sku: '',
+        category: '',
+        isPremium: false,
+        thumbnailUrl: '',
+        isActive: false,
+        price: 0,
+        tiers: [],
+        reviewCount: 0,
+        averageRating: 0,
+        isFavorite: false,
+    };
+    /**
+     * Fetch all products
+     */
+    const fetchAllProducts = async () => {
+        try {
+            dispatch(getProducts({ limit: 10, page: 1 }));
+        } catch (err) {
+            console.error('Failed to fetch services:', err);
+        }
+    };
     const handleTierChange = (index: number, field: keyof Tier, value: any) => {
         setProductDetails((prevDetails) => {
             const updatedTiers = [...prevDetails.tiers];
@@ -169,18 +216,24 @@ export default function useProductDetails() {
             return { ...prevDetails, tiers: updatedTiers };
         });
     };
-    const handleSubmit = async () => {
+    const onSubmit = async () => {
         if (!validateForm()) return;
         try {
-            dispatch(
-                addProduct({
-                    productDetails: {
-                        ...productDetails,
-                        createdBy: loggedInUser.email,
-                        updatedBy: loggedInUser.email,
-                    },
-                })
-            );
+            if (productId !== '0') {
+                dispatch(updateProductByIdAction(productDetails));
+            } else {
+                dispatch(
+                    addProduct({
+                        productDetails: {
+                            ...productDetails,
+                            createdBy: loggedInUser.email,
+                            updatedBy: loggedInUser.email,
+                        },
+                    })
+                );
+            }
+            await fetchAllProducts();
+            setProductDetails(INIT_PRODUCT_DETAILS);
             navigate('/apps/products');
         } catch (err) {
             console.error('Failed to add product:', err);
@@ -193,7 +246,7 @@ export default function useProductDetails() {
         handleImageUpload,
         handleInputChange,
         validateForm,
-        handleSubmit,
+        // handleSubmit,
         addTierItem,
         handleTierChange,
         selectedProductImg,
@@ -203,13 +256,18 @@ export default function useProductDetails() {
         dispatch,
         createdProduct,
         isProductCreated,
-        uploadedImage,  
+        uploadedImage,
         setModalImage,
         setShowModal,
         formErrors,
         loading,
         productDetails,
         showModal,
-        modalImage
+        modalImage,
+        error,
+        setProductDetails,
+        onSubmit,
+        productDetailsById,
+        handleDeleteAction,
     };
 }

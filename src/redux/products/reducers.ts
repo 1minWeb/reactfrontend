@@ -2,11 +2,13 @@ import { Product } from 'pages/apps/Ecommerce/types';
 import { ProductActionTypes } from './constants';
 
 const INIT_STATE = {
-    products: {
-        results: [],
-    },
+    results: [],
     createdProduct: {},
     isProductCreated: false,
+    loading: false,
+    error: null,
+    uploadedImage: null,
+    productDetailsById: null,
 };
 
 type ProductActionType = {
@@ -15,81 +17,118 @@ type ProductActionType = {
         | ProductActionTypes.API_RESPONSE_ERROR
         | ProductActionTypes.GET_PRODUCTS
         | ProductActionTypes.ADD_PRODUCT
-        | ProductActionTypes.UPLOAD_IMAGE;
+        | ProductActionTypes.UPLOAD_IMAGE
+        | ProductActionTypes.GET_PRODUCT_DETAILS
+        | ProductActionTypes.DELETE_PRODUCT
+        | ProductActionTypes.UPDATE_PRODUCT;
     payload: {
         actionType?: string;
-        data?: Product[] | {}|any;
+        data?: Product[] | Product | any;
         error?: string;
-        uploadedUrl?: any
+        uploadedUrl?: string;
     };
 };
 
 type State = {
-    products: {
-        results: Product[];
-    };
+    results: Product[];
+    createdProduct: Product | {};
+    isProductCreated: boolean;
+    loading: boolean;
+    error: string | null;
+    uploadedImage: string | null;
+    productDetailsById: Product | null;
 };
 
-const Products = (state: State = INIT_STATE, action: ProductActionType) => {
-    switch (action.type) {
-        case ProductActionTypes.API_RESPONSE_SUCCESS:
-            switch (action.payload.actionType) {
-                case ProductActionTypes.GET_PRODUCTS: {
-                    return {
-                        results: action.payload.data, // Updating results
-                    };
-                }
-                case ProductActionTypes.ADD_PRODUCT: {
-                    return {
-                        ...state,
-                        createdProduct: action.payload.data, // Updating results
-                        isProductCreated: true,
-                    };
-                }
-                case ProductActionTypes.UPLOAD_IMAGE: {
-                    return {
-                        ...state,
-                        uploadedImage: action.payload?.data?.uploadedUrl,
-                        isProductCreated: true,
-                    };
-                }
-                default:
-                    return { ...state };
-            }
+const Products = (state: State = INIT_STATE, action: ProductActionType): State => {
+    const { type, payload } = action;
 
-        case ProductActionTypes.API_RESPONSE_ERROR:
-            switch (action.payload.actionType) {
-                case ProductActionTypes.GET_PRODUCTS: {
+    switch (type) {
+        case ProductActionTypes.API_RESPONSE_SUCCESS: {
+            const { actionType, data } = payload;
+            switch (actionType) {
+                case ProductActionTypes.GET_PRODUCTS:
                     return {
                         ...state,
-                        error: action.payload.error,
+                        results: Array.isArray(data) ? data : [],
+                        loading: false,
+                        error: null,
                     };
-                }
-                case ProductActionTypes.ADD_PRODUCT: {
+                case ProductActionTypes.ADD_PRODUCT:
                     return {
                         ...state,
-                        isProductCreated: false,
+                        createdProduct: data || {},
+                        isProductCreated: true,
+                        loading: false,
+                        error: null,
                     };
-                }
-                case ProductActionTypes.UPLOAD_IMAGE: {
+                case ProductActionTypes.UPLOAD_IMAGE:
                     return {
                         ...state,
-                        uploadedImage: null,
-                        isProductCreated: false,
+                        uploadedImage: payload.uploadedUrl || null,
+                        isProductCreated: true,
+                        loading: false,
+                        error: null,
                     };
-                }
+                case ProductActionTypes.GET_PRODUCT_DETAILS:
+                    return {
+                        ...state,
+                        productDetailsById: data || null,
+                        loading: false,
+                        error: null,
+                    };
+                case ProductActionTypes.UPDATE_PRODUCT:
+                    return {
+                        
+                        ...state,
+                        results: Array.isArray(data) ? data : state.results,
+                        loading: false,
+                        error: null,
+                    };
+                case ProductActionTypes.DELETE_PRODUCT:
+                    return {
+                        ...state,
+                        results: Array.isArray(data) ? data : state.results,
+                        loading: false,
+                        error: null,
+                    };
                 default:
-                    return { ...state };
+                    return state;
             }
+        }
+
+        case ProductActionTypes.API_RESPONSE_ERROR: {
+            const { actionType, error } = payload;
+            switch (actionType) {
+                case ProductActionTypes.GET_PRODUCTS:
+                case ProductActionTypes.ADD_PRODUCT:
+                case ProductActionTypes.UPLOAD_IMAGE:
+                case ProductActionTypes.GET_PRODUCT_DETAILS:
+                case ProductActionTypes.UPDATE_PRODUCT:
+                case ProductActionTypes.DELETE_PRODUCT:
+                    return {
+                        ...state,
+                        error: error || 'An error occurred',
+                        loading: false,
+                    };
+                default:
+                    return state;
+            }
+        }
 
         case ProductActionTypes.GET_PRODUCTS:
-            return { ...state, loading: true };
         case ProductActionTypes.ADD_PRODUCT:
-            return { ...state, loading: true };
         case ProductActionTypes.UPLOAD_IMAGE:
-            return { ...state, loading: true };
+        case ProductActionTypes.GET_PRODUCT_DETAILS:
+        case ProductActionTypes.UPDATE_PRODUCT:
+        case ProductActionTypes.DELETE_PRODUCT:
+            return {
+                ...state,
+                loading: true,
+                error: null,
+            };
+
         default:
-            return { ...state };
+            return state;
     }
 };
 

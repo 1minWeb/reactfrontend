@@ -6,7 +6,10 @@ export type ProductActionType = {
         | ProductActionTypes.API_RESPONSE_ERROR
         | ProductActionTypes.GET_PRODUCTS
         | ProductActionTypes.ADD_PRODUCT
-        | ProductActionTypes.UPLOAD_IMAGE;
+        | ProductActionTypes.UPLOAD_IMAGE
+        | ProductActionTypes.GET_PRODUCT_DETAILS
+        | ProductActionTypes.DELETE_PRODUCT
+        | ProductActionTypes.UPDATE_PRODUCT
     payload: {} | string;
 };
 
@@ -61,4 +64,22 @@ export const addProduct = (params: any): ProductActionType => ({
 export const uploadImage = (params?: any): ProductActionType => ({
     type: ProductActionTypes.UPLOAD_IMAGE,
     payload: params,
+});
+
+export const getProductByIdAction = (params?: any): ProductActionType => ({
+    type: ProductActionTypes.GET_PRODUCT_DETAILS,
+    payload: params 
+})
+
+export const updateProductByIdAction = (productData: any): ProductActionType => ({
+    type: ProductActionTypes.UPDATE_PRODUCT,
+    payload:productData
+});
+
+export const deleteProductByIdAction = (productId: string): ProductActionType => ({
+    
+    type: ProductActionTypes.DELETE_PRODUCT,
+    payload: {
+        productId
+    }
 });

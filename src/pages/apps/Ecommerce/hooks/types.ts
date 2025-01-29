@@ -12,6 +12,7 @@ export interface Tier {
     currency?: string;
     priceWithDiscount: number;
     itemsIncluded: string[];
+    stockAvailable?: number;
 }
 
 export interface ProductDetails {

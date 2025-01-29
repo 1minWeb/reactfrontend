@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Row, Col, Card, Button, Modal } from 'react-bootstrap';
 import { Column } from 'react-table';
-import { PageTitle, Table, CellFormatter, PageSize } from 'components';
+import { PageTitle, Table, CellFormatter, PageSize, Loader } from 'components';
 import { IService } from './types';
 import useServiceDetails from './hooks/useServiceDetails';
 import { getServices } from 'redux/services/actions';
@@ -146,6 +146,7 @@ const Services = () => {
                                     </div>
                                 </Col>
                             </Row>
+                            {loading && <Loader />}
                             {services?.length > 0 ? (
                                 <Table<IService>
                                     columns={columns}

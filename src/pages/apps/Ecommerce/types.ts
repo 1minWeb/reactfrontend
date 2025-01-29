@@ -11,7 +11,7 @@ export interface ProductTeir {
 }
 
 export interface Product {
-    id: string;
+    id?: string;
     title: string;
     description: string;
     sku: string;

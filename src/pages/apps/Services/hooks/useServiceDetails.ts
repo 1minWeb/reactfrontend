@@ -11,7 +11,6 @@ export default function useServiceDetails() {
     const navigate = useNavigate();
 
     const [selectedServiceImg, setSelectedServiceImg] = useState<string>('');
-    const [loading, setLoading] = useState(false);
     const [formErrors, setFormErrors] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -21,18 +20,21 @@ export default function useServiceDetails() {
         createdService,
         isServiceCreated,
         serviceDetailsById,
+        loading,
     }: {
         services: IService[];
         totalRecords: number;
         createdService: IService;
         isServiceCreated: boolean;
         serviceDetailsById: IService | null;
+        loading: boolean;
     } = appSelector((state: any) => ({
         services: state.Services?.results,
         totalRecords: state.Services?.totalRecords,
         createdService: state.Services?.createdService,
         isServiceCreated: state.Services?.isServiceCreated,
         serviceDetailsById: state.Services?.serviceDetailsById,
+        loading: state.Services.loading,
     }));
 
     const params = useParams<{ Id: string }>();
@@ -65,11 +67,10 @@ export default function useServiceDetails() {
     /**
      * Handles image upload
      */
-    const handleImageUpload = async (files: FileType[]) => {
-        setLoading(true);
+    const handleFileUpload = async (files: FileType[]) => {
+        // setLoading(true);
         try {
             const uploadPromises = files.map(async (file) => {
-
                 const response = await uploadImageApi({ file });
                 const image = {
                     url: response.data.uploadedUrl,
@@ -78,8 +79,8 @@ export default function useServiceDetails() {
                 };
                 setServiceDetails((prev) => ({
                     ...prev,
-                    imageUrl:response.data.uploadedUrl
-                }))
+                    imageUrl: response.data.uploadedUrl,
+                }));
                 return image;
             });
 
@@ -92,7 +93,6 @@ export default function useServiceDetails() {
         } catch (error) {
             console.error('Error uploading images:', error);
         } finally {
-            setLoading(false);
         }
     };
 
@@ -169,9 +169,9 @@ export default function useServiceDetails() {
      */
     const onSubmit = async () => {
         if (validateFields()) {
-            setLoading(true);
-            let updatedServiceDetails:any  = {...serviceDetails}
-            updatedServiceDetails.media = undefined
+            console.log(serviceId);
+            let updatedServiceDetails: any = { ...serviceDetails };
+            updatedServiceDetails.media = undefined;
             try {
                 if (serviceId !== '0') {
                     dispatch(updateServiceByIdAction(updatedServiceDetails));
@@ -184,23 +184,24 @@ export default function useServiceDetails() {
             } catch (err) {
                 setError('An error occurred while submitting the form.');
             } finally {
-                setLoading(false);
             }
         }
     };
-   /** Handles the image changes
-    */
-   const handleImgChange = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, selectedImg: string) => {
-       e.preventDefault();
-       setSelectedServiceImg(selectedImg);
-       return false;
-   };
+    /** Handles the image changes
+     */
+    const handleImgChange = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, selectedImg: string) => {
+        e.preventDefault();
+        setSelectedServiceImg(selectedImg);
+        return false;
+    };
     /**
      * Handles delete action
      */
     const handleDeleteAction = (id: number) => {
         dispatch(deleteServiceByIdAction(id));
-        dispatch(getServices({ limit: 10, page: 1 }));
+        setTimeout(() => {
+            dispatch(getServices({ limit: 10, page: 1 }));
+        }, 2000);
     };
 
     // Return all necessary properties and functions
@@ -221,7 +222,7 @@ export default function useServiceDetails() {
         serviceDetailsById,
         setServiceDetails,
         handleDeleteAction,
-        handleImageUpload,
+        handleFileUpload,
         setPrimaryImage,
         removeImage,
     };

@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Row, Col, Card, ProgressBar } from 'react-bootstrap';
-import { PageTitle, Rating } from 'components';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { FileUploader, FormInput, PageTitle, Rating } from 'components';
 import productImg1 from 'assets/images/products/product-5.jpg';
 import productImg2 from 'assets/images/products/product-1.jpg';
 import productImg3 from 'assets/images/products/product-6.jpg';
 import productImg4 from 'assets/images/products/product-3.jpg';
 import { useProductDetails } from './hooks';
-
+import { getProductByIdAction } from 'redux/actions';
+import { Product } from './types';
+import { t } from 'i18next';
+import { Alert, Button, Card, Col, Modal, Row, Table, ProgressBar } from 'react-bootstrap';
+import { MediaItem } from './hooks/types';
+import ProductTierTable from './ProductTierTable';
 const Stocks = () => {
     return (
         <div className="table-responsive mt-4">
@@ -72,189 +76,298 @@ const Stocks = () => {
 };
 
 const ProductDetails = () => {
-    const [product] = useState<Record<string, string | number>>({
-        name: 'Amazing Modern Chair (Orange)',
-        addedOn: '09/12/2018',
-        status: 'Instock',
-        price: '$139.58',
-        description:
-            "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
-        stock: '1,784',
-        noOfOrders: '5,458',
-        revenue: '$8,57,014',
-        rating: 4.5,
-    });
-    const { selectedProductImg, handleImgChange } = useProductDetails();
+    const { removeImage,
+        setPrimaryImage,
+        handleImageUpload,
+        handleInputChange,
+        onSubmit,
+        addTierItem,
+        handleTierChange,
+        setModalImage,
+        setShowModal,
+        formErrors,
+        loading,
+        productDetails,
+        showModal,
+        modalImage,
+        dispatch,
+        productDetailsById,
+        setProductDetails,
+        error
+    } = useProductDetails();
+    const openImageModal = (image: string) => {
+        setModalImage(image);
+        setShowModal(true);
+    };
+
+    const params = useParams<{ Id?: string }>();
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+    const productId = params.Id || '0';
+
+    useEffect(() => {
+        if (productId !== '0') {
+            const payload = {
+                productId: productId,
+                customerId: 3
+            }
+            dispatch(getProductByIdAction(payload));
+        }
+    }, []);
+    useEffect(() => {
+        if (productDetailsById && productId !== '0') {
+            setProductDetails((prevDetails: any) => ({
+                ...prevDetails,
+                ...productDetailsById,
+            }));
+        }
+    }, [productDetailsById]);
+    const [errorOccurred, setErrorOccurred] = useState('');
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (error) {
+            setErrorOccurred(error);
+            setTimeout(() => {
+                setErrorOccurred('');
+            }, 3000);
+        }
+    }, [error]);
+
+    const INIT_PRODUCT_DETAILS: Product = {
+        media: [],
+        title: '',
+        description: '',
+        sku: '',
+        category: '',
+        isPremium: false,
+        thumbnailUrl: '',
+        isActive: false,
+        price: 0,
+        tiers: [],
+        reviewCount: 0,
+        averageRating: 0,
+        isFavorite: false,
+    };
 
     return (
         <>
             <PageTitle
                 breadCrumbItems={[
-                    { label: 'eCommerce', path: '/apps/ecommerce/details' },
+                    { label: 'Products', path: '/apps/products' },
                     {
-                        label: 'Product Details',
-                        path: '/apps/ecommerce/details',
+                        label: 'Add Product',
+                        path: '/apps/products/add',
                         active: true,
                     },
                 ]}
-                title={'Product Details'}
+                title={t('Add Product')}
             />
+            {!loading && (
+                <>
+                    {Object.keys(formErrors).length > 0 && (
+                        <Alert variant="danger" className="my-2">
+                            Please fix the following errors:
+                            <ul>
+                                {Object.values(formErrors).map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                ))}
+                            </ul>
+                        </Alert>
+                    )}
 
-            <Row>
-                <Col>
                     <Card>
                         <Card.Body>
                             <Row>
-                                <Col lg={5}>
-                                    <Link to="#" className="text-center d-block mb-4">
-                                        <img
-                                            src={selectedProductImg}
-                                            className="img-fluid"
-                                            style={{ maxWidth: '280px' }}
-                                            alt="Product-img"
+                                <Col md={6}>
+                                    <form>
+                                        <FormInput
+                                            label={t('Title')}
+                                            type="text"
+                                            name="title"
+                                            placeholder={t('Enter product title')}
+                                            containerClass={'mb-2'}
+                                            value={productDetails.title}
+                                            onChange={handleInputChange}
                                         />
-                                    </Link>
+                                        {formErrors.title && <small className="text-danger">{formErrors.title}</small>}
 
-                                    <div className="d-lg-flex d-none justify-content-center">
-                                        <Link
-                                            to="#"
-                                            onMouseOver={(e) => {
-                                                handleImgChange(e, productImg1);
-                                            }}
-                                            onClick={(e) => {
-                                                handleImgChange(e, productImg1);
-                                            }}
-                                        >
-                                            <img
-                                                src={productImg1}
-                                                className="img-fluid img-thumbnail p-2"
-                                                style={{ maxWidth: '75px' }}
-                                                alt="Product-img"
-                                            />
-                                        </Link>
-                                        <Link
-                                            to="#"
-                                            className="ms-2"
-                                            onMouseOver={(e) => {
-                                                handleImgChange(e, productImg2);
-                                            }}
-                                            onClick={(e) => {
-                                                handleImgChange(e, productImg2);
-                                            }}
-                                        >
-                                            <img
-                                                src={productImg2}
-                                                className="img-fluid img-thumbnail p-2"
-                                                style={{ maxWidth: '75px' }}
-                                                alt="Product-img"
-                                            />
-                                        </Link>
-                                        <Link
-                                            to="#"
-                                            className="ms-2"
-                                            onMouseOver={(e) => {
-                                                handleImgChange(e, productImg3);
-                                            }}
-                                            onClick={(e) => {
-                                                handleImgChange(e, productImg3);
-                                            }}
-                                        >
-                                            <img
-                                                src={productImg3}
-                                                className="img-fluid img-thumbnail p-2"
-                                                style={{ maxWidth: '75px' }}
-                                                alt="Product-img"
-                                            />
-                                        </Link>
-                                        <Link
-                                            to="#"
-                                            className="ms-2"
-                                            onMouseOver={(e) => {
-                                                handleImgChange(e, productImg4);
-                                            }}
-                                            onClick={(e) => {
-                                                handleImgChange(e, productImg4);
-                                            }}
-                                        >
-                                            <img
-                                                src={productImg4}
-                                                className="img-fluid img-thumbnail p-2"
-                                                style={{ maxWidth: '75px' }}
-                                                alt="Product-img"
-                                            />
-                                        </Link>
-                                    </div>
+                                        <FormInput
+                                            label={t('Description')}
+                                            type="textarea"
+                                            name="description"
+                                            placeholder={t('Enter product description')}
+                                            containerClass={'mb-2'}
+                                            value={productDetails.description}
+                                            onChange={handleInputChange}
+                                        />
+                                        {formErrors.description && (
+                                            <small className="text-danger">{formErrors.description}</small>
+                                        )}
+
+                                        <FormInput
+                                            label={t('Category')}
+                                            type="text"
+                                            name="category"
+                                            placeholder={t('Enter product category')}
+                                            containerClass={'mb-2'}
+                                            value={productDetails.category}
+                                            onChange={handleInputChange}
+                                        />
+                                        {formErrors.category && (
+                                            <small className="text-danger">{formErrors.category}</small>
+                                        )}
+
+                                        <FormInput
+                                            label={t('SKU')}
+                                            type="text"
+                                            name="sku"
+                                            placeholder={t('Enter product SKU')}
+                                            containerClass={'mb-2'}
+                                            value={productDetails.sku}
+                                            onChange={handleInputChange}
+                                        />
+                                        {formErrors.sku && <small className="text-danger">{formErrors.sku}</small>}
+
+                                        <FormInput
+                                            label={t('Thumbnail URL')}
+                                            type="text"
+                                            name="thumbnailUrl"
+                                            placeholder={t('Enter thumbnail URL')}
+                                            containerClass={'mb-2'}
+                                            value={productDetails.thumbnailUrl}
+                                            onChange={handleInputChange}
+                                            disabled={true}
+                                        />
+                                        {formErrors.thumbnailUrl && (
+                                            <small className="text-danger">{formErrors.thumbnailUrl}</small>
+                                        )}
+
+                                        <FormInput
+                                            label={t('Premium Product')}
+                                            type="checkbox"
+                                            name="isPremium"
+                                            containerClass={'mb-2'}
+                                            checked={productDetails.isPremium}
+                                            onChange={handleInputChange}
+                                        />
+                                    </form>
+                                    {/* <div className="mb-3 mb-0 text-center">
+                                            <Button variant="primary" disabled={loading} onClick={handleSubmit}>
+                                                {t('Submit')}
+                                            </Button>
+                                        </div>
+                                    </form> */}
                                 </Col>
 
-                                <Col lg={7}>
-                                    <form className="ps-lg-4">
-                                        <h3 className="mt-0">
-                                            {product.name}
-                                            <Link to="#" className="text-muted">
-                                                <i className="mdi mdi-square-edit-outline ms-2"></i>
-                                            </Link>
-                                        </h3>
-                                        <p className="mb-1">Added Date: {product.addedOn}</p>
-                                        <Rating value={Number(product.rating)} />
-
-                                        <div className="mt-3">
-                                            <h4>
-                                                <span className="badge badge-success-lighten">{product.status}</span>
-                                            </h4>
-                                        </div>
-
-                                        <div className="mt-4">
-                                            <h6 className="font-14">Retail Price:</h6>
-                                            <h3> {product.price}</h3>
-                                        </div>
-
-                                        <div className="mt-4">
-                                            <h6 className="font-14">Quantity</h6>
-                                            <div className="d-flex">
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    defaultValue={1}
-                                                    className="form-control"
-                                                    placeholder="Qty"
-                                                    style={{ width: '90px' }}
-                                                />
-                                                <button type="button" className="btn btn-danger ms-2">
-                                                    <i className="mdi mdi-cart me-1"></i> Add to cart
+                                <Col md={6}>
+                                    <h5>{t('Upload Product Images')}</h5>
+                                    <FileUploader showPreview={false} onFileUpload={handleImageUpload} />
+                                    <div
+                                        className="image-preview-container"
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                            gap: '20px',
+                                            paddingTop: '25px',
+                                        }}>
+                                        {productDetails.media.length > 0 && productDetails.media.map((media: MediaItem, index: number) => (
+                                            <div
+                                                key={index}
+                                                className="image-preview position-relative p-2 shadow-sm rounded"
+                                                style={{
+                                                    border: media.isPrimary ? '2px solid #28a745' : '1px solid #ddd',
+                                                    textAlign: 'center',
+                                                    backgroundColor: '#f9f9f9',
+                                                }}>
+                                                {/* Close Button */}
+                                                <button
+                                                    className="btn btn-danger btn-sm position-absolute top-0 end-0"
+                                                    style={{
+                                                        transform: 'translate(50%, -50%)',
+                                                        zIndex: 10,
+                                                        borderRadius: '50%',
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeImage(index);
+                                                    }}>
+                                                    &times;
                                                 </button>
+                                                {/* Image Preview */}
+                                                <img
+                                                    src={media.url}
+                                                    alt={`Preview ${index}`}
+                                                    className="img-thumbnail"
+                                                    style={{
+                                                        width: '100px',
+                                                        height: '100px',
+                                                        objectFit: 'cover',
+                                                        marginBottom: '10px',
+                                                        borderRadius: '8px',
+                                                    }}
+                                                    onClick={() => openImageModal(media.url)}
+                                                />
+                                                {/* Image Name */}
+                                                <div
+                                                    className="text-truncate text-muted"
+                                                    style={{ fontSize: '12px', marginBottom: '5px' }}
+                                                    title={media.name || `Image ${index + 1}`}>
+                                                    {media.name || t(`Image ${index + 1}`)}
+                                                </div>
+                                                {/* Set as Primary Button */}
+                                                <div>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={media.isPrimary ? 'success' : 'secondary'}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setPrimaryImage(index);
+                                                        }}>
+                                                        {media.isPrimary ? t('Primary') : t('Set as Primary')}
+                                                    </Button>
+                                                </div>
                                             </div>
-                                        </div>
+                                        ))}
+                                    </div>
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
+                    <Card>
+                        <Card.Body>
+                            <Row>
+                                <Col>
+                                    <h5>{t('Product Tiers')}</h5>
 
-                                        <div className="mt-4">
-                                            <h6 className="font-14">Description:</h6>
-                                            <p>{product.description}</p>
-                                        </div>
+                                    <ProductTierTable productDetails={productDetails}
+                                        handleTierChange={handleTierChange}
+                                        addTierItem={addTierItem} />
 
-                                        <div className="mt-4">
-                                            <div className="row">
-                                                <div className="col-md-4">
-                                                    <h6 className="font-14">Available Stock:</h6>
-                                                    <p className="text-sm lh-150">{product.stock}</p>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <h6 className="font-14">Number of Orders:</h6>
-                                                    <p className="text-sm lh-150">{product.noOfOrders}</p>
-                                                </div>
-                                                <div className="col-md-4">
-                                                    <h6 className="font-14">Revenue:</h6>
-                                                    <p className="text-sm lh-150">{product.revenue}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
                                 </Col>
                             </Row>
 
-                            <Stocks />
+                            <Row className="mt-4">
+                                <Col className="text-end">
+                                    <Button variant="primary" onClick={onSubmit}>
+                                        {t('Submit')}
+                                    </Button>
+                                </Col>
+                            </Row>
                         </Card.Body>
                     </Card>
-                </Col>
-            </Row>
+                    <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
+                        <Modal.Body>
+                            <img src={modalImage} alt="Preview" style={{ width: '100%' }} />
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                Close
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                </>
+            )}
         </>
     );
 };

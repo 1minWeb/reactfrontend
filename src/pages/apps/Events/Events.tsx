@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Row, Col, Card, Button, Alert, Spinner, Modal } from 'react-bootstrap';
 import { Column } from 'react-table';
-import { PageTitle, Table, CellFormatter, PageSize } from 'components';
+import { PageTitle, Table, CellFormatter, PageSize, Loader } from 'components';
 import { IEvent } from '../Events/types';
 import { getEvents } from 'redux/events/actions';
-import useEventDetails from './hooks/useEvent';
+import useEventDetails from './hooks/useEventDetails';
 
 const Events = () => {
     const { dispatch, events, loading, error, handleDeleteAction } = useEventDetails(); // Assume totalRecords is returned by the server
@@ -39,7 +39,7 @@ const Events = () => {
             Cell: ({ row }: CellFormatter<any>) => (
                 <>
                     <p className="m-0 d-inline-block align-middle font-16">
-                        <Link to="/apps/events/details/${row.original.id}" className="text-body">
+                        <Link to={`/apps/events/details/${row.original.id}`} className="text-body">
                             {row.original.eventName}
                         </Link>
                     </p>
@@ -135,11 +135,7 @@ const Events = () => {
                                     </div>
                                 </Col>
                             </Row>
-                            {loading ? (
-                                <div className="text-center my-3">
-                                    <Spinner animation="border" />
-                                </div>
-                            ) : error ? (
+                            {(loading) ? <Loader /> : error ? (
                                 <Alert variant="danger">{error}</Alert>
                             ) : events?.length > 0 ? (
                                 <Table<IEvent>

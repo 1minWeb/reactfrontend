@@ -1,5 +1,5 @@
 import React from "react";
-import { Form } from "react-bootstrap";
+import { Form, Table } from "react-bootstrap";
 import { Tier } from "./hooks/types";
 
 interface ProductTierTableProps {
@@ -18,14 +18,16 @@ export const ProductTierTable: React.FC<ProductTierTableProps> = ({
     t = (key) => key,
 }) => {
     return (
-        <table className="table">
+        <Table striped bordered hover responsive>
             <thead>
                 <tr>
                     <th>Tier Type</th>
                     <th>Actual Price</th>
                     <th>Discount (%)</th>
                     <th>Price with Discount</th>
+                    <th>Quantity</th>
                     <th>Items Included</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -87,6 +89,19 @@ export const ProductTierTable: React.FC<ProductTierTableProps> = ({
                             />
                         </td>
                         <td>
+                            <Form.Control
+                                type="number"
+                                value={tier.stockAvailable}
+                                onChange={(e) =>
+                                    handleTierChange(
+                                        index,
+                                        "stockAvailable",
+                                        parseFloat(e.target.value) || 0
+                                    )
+                                }
+                            />
+                        </td>
+                        <td>
                             <div className="d-flex flex-wrap align-items-center">
                                 {tier.itemsIncluded.map((item, idx) => (
                                     <span key={idx} className="badge bg-primary me-1 mb-1">
@@ -110,7 +125,7 @@ export const ProductTierTable: React.FC<ProductTierTableProps> = ({
                     </tr>
                 ))}
             </tbody>
-        </table>
+        </Table>
     );
 };
 

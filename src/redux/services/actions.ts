@@ -44,7 +44,7 @@ export const getServiceByIdAction = (serviceId: string): ServiceActionType => ({
     payload: { serviceId }
 })
 export const updateServiceByIdAction = (serviceData: any): ServiceActionType => ({
-   
+
     type: ServiceActionTypes.UPDATE_SERVICE,
     payload:serviceData
 });

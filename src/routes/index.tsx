@@ -57,7 +57,7 @@ const CRMOrderList = React.lazy(() => import('pages/apps/CRM/OrderList'));
 // - ecommece pages
 const EcommerceProducts = React.lazy(() => import('pages/apps/Ecommerce/Products'));
 const ProductDetails = React.lazy(() => import('pages/apps/Ecommerce/ProductDetails'));
-const AddProduct = React.lazy(() => import('pages/apps/Ecommerce/AddProducts'));
+//const AddProduct = React.lazy(() => import('pages/apps/Ecommerce/AddProducts'));
 const Orders = React.lazy(() => import('pages/apps/Ecommerce/Orders'));
 const OrderDetails = React.lazy(() => import('pages/apps/Ecommerce/OrderDetails'));
 const Customers = React.lazy(() => import('pages/apps/Ecommerce/Customers'));
@@ -326,13 +326,10 @@ const AllRoutes = () => {
                                     path: '',
                                     element: <LoadComponent component={EcommerceProducts} />,
                                 },
+
                                 {
-                                    path: 'details',
+                                    path: 'addProduct/:Id',
                                     element: <LoadComponent component={ProductDetails} />,
-                                },
-                                {
-                                    path: 'addProduct',
-                                    element: <LoadComponent component={AddProduct} />,
                                 },
                             ],
                         },
@@ -343,13 +340,10 @@ const AllRoutes = () => {
                                     path: '',
                                     element: <LoadComponent component={Services} />,
                                 },
-                                {
-                                    path: 'details',
-                                    element: <LoadComponent component={ProductDetails} />,
-                                },
+
                                 {
                                     path: 'addService/:Id',
-                                    element : <LoadComponent component={ServiceDetails}/>
+                                    element: <LoadComponent component={ServiceDetails} />
                                 }
                             ],
                         },
@@ -360,15 +354,12 @@ const AllRoutes = () => {
                                     path: '',
                                     element: <LoadComponent component={Events} />,
                                 },
-                                {
-                                    path: 'details',
-                                    element: <LoadComponent component={ProductDetails} />,
-                                },
+
                                 {
                                     path: 'addEvent/:Id',
                                     element: <LoadComponent component={EventDetails} />,
                                 },
-                               
+
                             ],
                         },
                         {
@@ -378,10 +369,10 @@ const AllRoutes = () => {
                                 //     path: 'products',
                                 //     element: <LoadComponent component={EcommerceProducts} />,
                                 // },
-                                {
-                                    path: 'details',
-                                    element: <LoadComponent component={ProductDetails} />,
-                                },
+                                // {
+                                //     path: 'details',
+                                //     element: <LoadComponent component={ProductDetails} />,
+                                // },
                                 {
                                     path: 'orders',
                                     element: <LoadComponent component={Orders} />,

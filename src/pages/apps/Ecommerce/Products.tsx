@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Row, Col, Card, Button } from 'react-bootstrap';
+import { Row, Col, Card, Button, Modal } from 'react-bootstrap';
 import classNames from 'classnames';
 import { Column } from 'react-table';
 import { PageTitle, Table, CellFormatter, PageSize, Loader } from 'components';
@@ -9,19 +9,27 @@ import useProductDetails from './hooks/useProductDetails';
 import { getProducts } from 'redux/actions';
 
 const Products = () => {
-    const { dispatch, products, loading } = useProductDetails(); // Assume totalRecords is returned by the server
+    const { dispatch, products, loading, handleDeleteAction } = useProductDetails(); // Assume totalRecords is returned by the server
     useEffect(() => {
         dispatch(getProducts({ limit: 50, page: 1, customerId: 3, sortBy: 'id' }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
+    }, []);
+    const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(loading);
+
+
+    const confirmDelete = () => {
+        if (deleteProductId) {
+            handleDeleteAction(deleteProductId);
+            setDeleteProductId(null);
+        }
+    };
     const columns: ReadonlyArray<Column<any>> = [
         {
             Header: 'Product',
             accessor: 'title',
             defaultCanSort: true,
             Cell: ({ row }: { row: any }) => {
-                const [isLoading, setIsLoading] = useState(true);
 
                 const handleLoad = () => {
                     setIsLoading(false);
@@ -116,13 +124,20 @@ const Products = () => {
             accessor: 'action',
             Cell: ({ row }: CellFormatter<Product>) => (
                 <>
-                    <Link to="#" className="action-icon">
+                    <Link to={`/apps/products/addProduct/${row.original.id}`} className="action-icon">
                         <i className="mdi mdi-eye"></i>
                     </Link>
-                    <Link to="#" className="action-icon">
+                    <Link to={`/apps/products/addProduct/${row.original.id}`} className="action-icon">
                         <i className="mdi mdi-square-edit-outline"></i>
                     </Link>
-                    <Link to="#" className="action-icon">
+                    <Link to="#"
+                        className="action-icon"
+                        onClick={(product: any) => {
+                            product.preventDefault();
+
+                            setDeleteProductId(row.original.id!);
+
+                        }}>
                         <i className="mdi mdi-delete"></i>
                     </Link>
                 </>
@@ -152,7 +167,7 @@ const Products = () => {
                         <Card.Body>
                             <Row className="mb-2">
                                 <Col sm={5}>
-                                    <Link to="/apps/products/addProduct" className="btn btn-danger mb-2">
+                                    <Link to="/apps/products/addProduct/0" className="btn btn-danger mb-2">
                                         <i className="mdi mdi-plus-circle me-2"></i> Add Products
                                     </Link>
                                 </Col>
@@ -173,9 +188,9 @@ const Products = () => {
                                     </div>
                                 </Col>
                             </Row>
-                            {loading && <Loader />
+                            {(isLoading || loading) && <Loader />
                             }
-                            {products?.length > 0 ? (
+                            {products?.length > 0 && !(loading || isLoading) ? (
                                 <Table<Product>
                                     columns={columns}
                                     data={products}
@@ -193,6 +208,22 @@ const Products = () => {
                     </Card>
                 </Col>
             </Row>
+            <Modal show={!!deleteProductId} onHide={() => setDeleteProductId(null)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Delete</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Are you sure you want to delete this Product?</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="danger" onClick={confirmDelete}>
+                        Delete
+                    </Button>
+                    <Button variant="secondary" onClick={() => setDeleteProductId(null)}>
+                        Cancel
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 };

@@ -12,4 +12,11 @@ export interface IEvent {
   sectionItemId: null;
   updatedAt: string;
   userId: string | null;
+  media?: MediaItem[]| undefined;
+}
+interface MediaItem {
+  name?: string;
+  url: string;
+  mediaType: string;
+  isPrimary: boolean;
 }

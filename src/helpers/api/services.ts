@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { APICore } from './apiCore';
 
 const api = new APICore();
@@ -10,6 +11,13 @@ interface ServiceDetails {
     rating: number;
     imageUrl: string;
     price: number;
+    media: MediaItem[];
+}
+interface MediaItem {
+    name?: string;
+    url: string;
+    mediaType: string;
+    isPrimary: boolean;
 }
 
 function getServices(params: { limit: number; page: number; tenantId: number }) {
@@ -29,26 +37,30 @@ function getServiceDetails(params: { serviceId: string }) {
 
 // Update service details
 function updateServiceDetails(params: {
-    userId: any; serviceId?: string, name?: string, description?: string, discount?: number,imageUrl:string, reviews:number, price:number,rating:number
+    userId: any;
+    id?: string;
+    name?: string;
+    description?: string;
+    discount?: number;
+    imageUrl: string;
+    reviews: number;
+    price: number;
+    rating: number;
 }) {
-    const baseUrl = `/service/${params.serviceId}`; // Adjust the endpoint URL as per your backend API
+    const baseUrl = `/service/${params.id}`; // Adjust the endpoint URL as per your backend API
     const body = {
         name: params.name,
         imageUrl: params.imageUrl,
         description: params.description,
         discount: params.discount,
-        reviews:params.reviews,
+        reviews: params.reviews,
         rating: params.rating,
-        price: params.price
+        price: params.price,
     };
     return api.updatePatch(`${baseUrl}`, body);
 }
-
-//delete services
 function deleteServiceByIdApi(params: { serviceId: string }) {
     const baseUrl = `/service/${params.serviceId}`; // Adjust the endpoint URL as per your backend API
     return api.delete(`${baseUrl}`);
 }
-export { getServices, addService, getServiceDetails,updateServiceDetails,deleteServiceByIdApi };
-
-
+export { getServices, addService, getServiceDetails, updateServiceDetails, deleteServiceByIdApi };

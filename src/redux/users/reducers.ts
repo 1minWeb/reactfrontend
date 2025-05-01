@@ -15,17 +15,61 @@ interface UserInterface {
 const INIT_STATE = {
     users: [],
     loading: false,
-    userDetailsById: {}
+    userDetailsById: {},
+    dashboardData: {
+        dateRange: {
+            startDate: null,
+            endDate: null,
+        },
+        overview: {
+            totalProducts: 0,
+            totalActiveProducts: 0,
+            totalServices: 0,
+            totalEvents: 0,
+            totalCustomers: 0,
+            totalPoojaris: 0,
+            totalOrders: 0,
+            totalRituals: 0,
+            totalUsers: 0,
+        },
+        revenue: {
+            orderRevenue: 0,
+            monthlyRevenue: [],
+            currentMonthStats: [],
+        },
+        payments: {
+            pendingPayments: 0,
+            completedPayments: 0,
+            completionRate: 0,
+        },
+        recentActivity: {
+            recentOrders: [],
+            recentCustomers: [],
+            topProducts: [],
+            topPoojaris: [],
+        },
+        analytics: {
+            customerSegments: [],
+            orderGrowth: 0,
+            conversionRate: 0,
+        },
+        stats: {
+            averageOrderValue: 0,
+            activePoojariPercentage: 0,
+            verifiedPoojariPercentage: 0,
+        },
+    },
 };
 type UserActionType = {
     type:
-    | UserActionTypes.API_RESPONSE_SUCCESS
-    | UserActionTypes.API_RESPONSE_ERROR
-    | UserActionTypes.GET_USERS
-    | UserActionTypes.GET_USER_DETAILS
-    | UserActionTypes.UPDATE_USER
-    | UserActionTypes.ADD_USER
-    | UserActionTypes.DELETE_USER
+        | UserActionTypes.API_RESPONSE_SUCCESS
+        | UserActionTypes.API_RESPONSE_ERROR
+        | UserActionTypes.GET_USERS
+        | UserActionTypes.GET_USER_DETAILS
+        | UserActionTypes.UPDATE_USER
+        | UserActionTypes.ADD_USER
+        | UserActionTypes.DELETE_USER
+        | UserActionTypes.GET_DASHBOARD_DATA;
     payload: {
         actionType?: string;
         data?: UserInterface | {};
@@ -36,7 +80,7 @@ type State = {
     users: any | [];
     userDetailsById: {};
     loading?: boolean;
-}
+};
 const User = (state: State = INIT_STATE, action: UserActionType) => {
     switch (action.type) {
         case UserActionTypes.API_RESPONSE_SUCCESS:
@@ -74,6 +118,13 @@ const User = (state: State = INIT_STATE, action: UserActionType) => {
                     return {
                         ...state,
                         users: action.payload.data,
+                        loading: false,
+                    };
+                }
+                case UserActionTypes.GET_DASHBOARD_DATA: {
+                    return {
+                        ...state,
+                        dashboardData: action.payload.data,
                         loading: false,
                     };
                 }
@@ -117,6 +168,13 @@ const User = (state: State = INIT_STATE, action: UserActionType) => {
                         loading: false,
                     };
                 }
+                case UserActionTypes.GET_DASHBOARD_DATA: {
+                    return {
+                        ...state,
+                        error: action.payload.error,
+                        loading: false,
+                    };
+                }
                 default:
                     return { ...state };
             }
@@ -128,8 +186,12 @@ const User = (state: State = INIT_STATE, action: UserActionType) => {
             return { ...state, loading: true };
         case UserActionTypes.DELETE_USER:
             return { ...state, loading: true };
+        case UserActionTypes.ADD_USER:
+            return { ...state, loading: true };
+        case UserActionTypes.GET_DASHBOARD_DATA:
+            return { ...state, loading: true };
         default:
-            return { ...state }
+            return { ...state };
     }
 };
 export default User;

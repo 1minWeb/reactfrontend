@@ -1,14 +1,15 @@
-import { UserActionTypes } from "./constants";
+import { UserActionTypes } from './constants';
 
 export type UserActionType = {
     type:
-    | UserActionTypes.API_RESPONSE_SUCCESS
-    | UserActionTypes.API_RESPONSE_ERROR
-    | UserActionTypes.GET_USERS
-    | UserActionTypes.GET_USER_DETAILS
-    | UserActionTypes.ADD_USER
-    | UserActionTypes.UPDATE_USER
-    | UserActionTypes.DELETE_USER;
+        | UserActionTypes.API_RESPONSE_SUCCESS
+        | UserActionTypes.API_RESPONSE_ERROR
+        | UserActionTypes.GET_USERS
+        | UserActionTypes.GET_USER_DETAILS
+        | UserActionTypes.ADD_USER
+        | UserActionTypes.UPDATE_USER
+        | UserActionTypes.DELETE_USER
+        | UserActionTypes.GET_DASHBOARD_DATA;
     payload: {} | string;
 };
 export type User = {
@@ -23,7 +24,7 @@ export type User = {
     username: string;
     userTyoe: string;
     isActive: boolean;
-}
+};
 // common success
 export const userApiResponseSuccess = (actionType: string, data: User | {}): UserActionType => ({
     type: UserActionTypes.API_RESPONSE_SUCCESS,
@@ -37,13 +38,13 @@ export const userApiResponseError = (actionType: string, error: string): UserAct
 
 export const getAllUsers = (): UserActionType => ({
     type: UserActionTypes.GET_USERS,
-    payload: {}
-})
+    payload: {},
+});
 
 export const getUserByIdAction = (userId: string): UserActionType => ({
     type: UserActionTypes.GET_USER_DETAILS,
-    payload: { userId }
-})
+    payload: { userId },
+});
 export const updateUserByIdAction = (userData: any): UserActionType => ({
     type: UserActionTypes.UPDATE_USER,
     payload: {
@@ -60,5 +61,13 @@ export const deleteUserByIdAction = (userId: number): UserActionType => ({
     type: UserActionTypes.DELETE_USER,
     payload: {
         userId: userId,
+    },
+});
+
+export const getDashboardDataAction = (startDate: string, endDate: string): UserActionType => ({
+    type: UserActionTypes.GET_DASHBOARD_DATA,
+    payload: {
+        startDate,
+        endDate,
     },
 });

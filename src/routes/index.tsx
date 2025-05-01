@@ -32,6 +32,7 @@ const ForgetPassword2 = React.lazy(() => import('pages/account/ForgetPassword2')
 const LockScreen2 = React.lazy(() => import('pages/account/LockScreen2'));
 
 // dashboard
+const AdminDashboard = React.lazy(() => import('pages/dashboard/Admin'));
 const AnalyticsDashboard = React.lazy(() => import('pages/dashboard/Analytics'));
 const EcommerceDashboard = React.lazy(() => import('pages/dashboard/Ecommerce'));
 const ProjectDashboard = React.lazy(() => import('pages/dashboard/Project'));
@@ -249,6 +250,10 @@ const AllRoutes = () => {
                 {
                     path: 'dashboard',
                     children: [
+                        {
+                            path: '',
+                            element: <LoadComponent component={AdminDashboard} />,
+                        },
                         {
                             path: 'analytics',
                             element: <LoadComponent component={AnalyticsDashboard} />,

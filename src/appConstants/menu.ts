@@ -23,6 +23,12 @@ const MENU_ITEMS: MenuItemType[] = [
         badge: { variant: 'success', text: '4' },
         children: [
             {
+                key: 'ds-admin',
+                label: 'Admin Dashboard',
+                url: '/dashboard',
+                parentKey: 'dashboards',
+            },
+            {
                 key: 'ds-analytics',
                 label: 'Analytics',
                 url: '/dashboard/analytics',

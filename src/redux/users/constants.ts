@@ -7,4 +7,5 @@ export enum UserActionTypes {
     UPDATE_USER = '@@user/UPDATE_USER',
     ADD_USER = '@@user/ADD_USER',
     DELETE_USER = '@@user/DELETE_USER',
+    GET_DASHBOARD_DATA = '@@user/GET_DASHBOARD_DATA',
 }

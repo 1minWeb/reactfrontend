@@ -77,6 +77,13 @@ const MENU_ITEMS: MenuItemType[] = [
         icon: 'uil-cloud',
         url: '/apps/events',
     },
+    {
+        key: 'apps-poojari',
+        label: 'Poojaris',
+        isTitle: false,
+        icon: 'uil-user',
+        url: '/apps/poojari',
+    },
     // { key: 'apps', label: 'User/Customer Management', isTitle: true },
 
     {

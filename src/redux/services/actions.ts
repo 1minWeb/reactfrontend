@@ -26,33 +26,29 @@ export const serviceApiResponseError = (actionType: string, error: string): Serv
     payload: { actionType, error },
 });
 
-export const getServices = (params:any): ServiceActionType => ({
+export const getServices = (params: any): ServiceActionType => ({
     type: ServiceActionTypes.GET_SERVICES,
     payload: params,
 });
 
 // Add services
-export const addService = (params:any): ServiceActionType => ({
-    
+export const addService = (params: any): ServiceActionType => ({
     type: ServiceActionTypes.ADD_SERVICE,
     payload: params,
-
 });
 
 export const getServiceByIdAction = (serviceId: string): ServiceActionType => ({
     type: ServiceActionTypes.GET_SERVICE_DETAILS,
-    payload: { serviceId }
-})
+    payload: { serviceId },
+});
 export const updateServiceByIdAction = (serviceData: any): ServiceActionType => ({
-
     type: ServiceActionTypes.UPDATE_SERVICE,
-    payload:serviceData
+    payload: serviceData,
 });
 
 export const deleteServiceByIdAction = (serviceId: number): ServiceActionType => ({
-    
     type: ServiceActionTypes.DELETE_SERVICE,
     payload: {
-        serviceId
-    }
+        serviceId,
+    },
 });

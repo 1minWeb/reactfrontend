@@ -6,6 +6,16 @@ import userSaga from './users/saga';
 import productSaga from './products/saga';
 import serviceSaga from './services/saga';
 import EventsSaga from './events/saga';
+import PoojariSaga from './poojari/saga';
 export default function* rootSaga() {
-    yield all([authSaga(), layoutSaga(), userSaga(), customerSaga(), productSaga(), serviceSaga(), EventsSaga()]);
+    yield all([
+        authSaga(),
+        layoutSaga(),
+        userSaga(),
+        customerSaga(),
+        productSaga(),
+        serviceSaga(),
+        EventsSaga(),
+        PoojariSaga(),
+    ]);
 }

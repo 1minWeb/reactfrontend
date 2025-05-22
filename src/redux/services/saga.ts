@@ -1,6 +1,12 @@
 import { all, fork, put, takeEvery, call } from 'redux-saga/effects';
 import { SagaIterator } from '@redux-saga/core';
-import { getServices as getServicesApi, addService as addServiceApi,getServiceDetails,updateServiceDetails, deleteServiceByIdApi } from 'helpers/api/services'
+import {
+    getServices as getServicesApi,
+    addService as addServiceApi,
+    getServiceDetails,
+    updateServiceDetails,
+    deleteServiceByIdApi,
+} from 'helpers/api/services';
 import { serviceApiResponseSuccess, serviceApiResponseError } from './actions';
 import { ServiceActionTypes } from './constants';
 
@@ -19,7 +25,7 @@ function* getServices({ payload: { limit, page, tenantId } }: any): SagaIterator
     }
 }
 
-function* addService({ payload:  serviceDetails  }: any): SagaIterator {
+function* addService({ payload: serviceDetails }: any): SagaIterator {
     try {
         console.log('serviceDetails', serviceDetails);
         const response = yield call(addServiceApi, { ...serviceDetails });
@@ -35,11 +41,10 @@ function* getServiceDetailsByIdSaga(action: any): SagaIterator {
     try {
         const response = yield call(getServiceDetails, action.payload);
         const serviceDetails = response.data;
-        console.log(serviceDetails)
+        console.log(serviceDetails);
         yield put(serviceApiResponseSuccess(ServiceActionTypes.GET_SERVICE_DETAILS, serviceDetails));
     } catch (error: any) {
         yield put(serviceApiResponseError(ServiceActionTypes.GET_SERVICE_DETAILS, error));
-
     }
 }
 
@@ -87,7 +92,13 @@ export function* watchDeleteServiceById() {
  * Root service saga
  */
 function* serviceSaga() {
-    yield all([fork(watchGetServices),fork(watchAddServices), fork(watchGetServiceDetailsById),fork(watchUpdateServiceById), fork(watchDeleteServiceById)]);
+    yield all([
+        fork(watchGetServices),
+        fork(watchAddServices),
+        fork(watchGetServiceDetailsById),
+        fork(watchUpdateServiceById),
+        fork(watchDeleteServiceById),
+    ]);
 }
 
 export default serviceSaga;

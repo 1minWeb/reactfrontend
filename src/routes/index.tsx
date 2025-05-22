@@ -68,6 +68,8 @@ const Sellers = React.lazy(() => import('pages/apps/Ecommerce/Sellers'));
 // - services
 const Services = React.lazy(() => import('pages/apps/Services/Services'));
 const ServiceDetails = React.lazy(() => import('pages/apps/Services/ServiceDetails'));
+const Poojaris = React.lazy(() => import('pages/apps/Poojari/Poojari'));
+const PoojariDetails = React.lazy(() => import('pages/apps/Poojari/PoojariEdit'));
 // - events
 const Events = React.lazy(() => import('pages/apps/Events/Events'));
 const EventDetails = React.lazy(() => import('pages/apps/Events/EventDetails'));
@@ -363,6 +365,21 @@ const AllRoutes = () => {
                                 {
                                     path: 'addEvent/:Id',
                                     element: <LoadComponent component={EventDetails} />,
+                                },
+
+                            ],
+                        },
+                        {
+                            path: 'poojari',
+                            children: [
+                                {
+                                    path: '',
+                                    element: <LoadComponent component={Poojaris} />,
+                                },
+
+                                {
+                                    path: 'edit/:Id',
+                                    element: <LoadComponent component={PoojariDetails} />,
                                 },
 
                             ],

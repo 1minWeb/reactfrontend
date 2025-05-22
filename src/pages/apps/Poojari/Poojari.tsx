@@ -36,7 +36,7 @@ const Poojaris = () => {
             Header: 'Name',
             accessor: 'name',
             Cell: ({ row }: CellFormatter<IPoojari>) => (
-                <Link to={`/apps/poojaris/details/${row.original.id}`} className="text-body">
+                <Link to={`/apps/poojari/edit/${row.original.id}`} className="text-body">
                     {row.original.name}
                 </Link>
             ),
@@ -103,8 +103,8 @@ const Poojaris = () => {
         <>
             <PageTitle
                 breadCrumbItems={[
-                    { label: 'Poojaris', path: '/apps/poojaris' },
-                    { label: 'Poojari List', path: '/apps/poojaris', active: true },
+                    { label: 'Poojaris', path: '/apps/poojari' },
+                    { label: 'Poojari List', path: '/apps/poojari', active: true },
                 ]}
                 title={'Poojaris'}
             />
@@ -115,7 +115,7 @@ const Poojaris = () => {
                         <Card.Body>
                             <Row className="mb-2">
                                 <Col sm={5}>
-                                    <Link id="0" to={`/apps/poojaris/add/0`} className="btn btn-danger mb-2">
+                                    <Link id="0" to={`/apps/poojari/edit/0`} className="btn btn-danger mb-2">
                                         <i className="mdi mdi-plus-circle me-2"></i> Add Poojari
                                     </Link>
                                 </Col>

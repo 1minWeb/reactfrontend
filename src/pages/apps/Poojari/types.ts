@@ -4,7 +4,6 @@ export interface IPoojari {
     phone?: string;
     email?: string;
     profilePicture: string;
-    specialization: ISpecialization[];
     languages: string[];
     experience: number;
     rating: number;
@@ -31,7 +30,6 @@ export interface IPoojariMedia {
     id?: number;
     thumbnailUrl: string;
     images: string[];
-    poojariId?: number;
 }
 
 export interface IRitual {

@@ -42,7 +42,6 @@ export default function usePoojariDetails() {
         phone: '',
         email: '',
         profilePicture: '',
-        specialization: [],
         languages: [],
         experience: 0,
         rating: 0,
@@ -93,6 +92,10 @@ export default function usePoojariDetails() {
             setFormErrors('Enter a valid poojari name');
             return false;
         }
+        if (!poojariDetails.email && !poojariDetails.phone) {
+            setFormErrors('Either Email or Phone must be provided');
+            return false;
+        }
         setFormErrors('');
         return true;
     };
@@ -100,14 +103,21 @@ export default function usePoojariDetails() {
     const onSubmit = async () => {
         if (validateFields()) {
             try {
+                const updatedPoojariDetails = {
+                    ...poojariDetails,
+                };
+                // if email is empty or undefined, delete it
+                if (!poojariDetails.email || poojariDetails.email.trim() === '') {
+                    delete updatedPoojariDetails.email;
+                }
                 if (poojariId !== '0') {
-                    dispatch(updatePoojariByIdAction(poojariDetails));
+                    dispatch(updatePoojariByIdAction(updatedPoojariDetails));
                 } else {
-                    dispatch(addPoojari(poojariDetails));
+                    dispatch(addPoojari(updatedPoojariDetails));
                 }
                 await fetchAllPoojaris();
                 setPoojariDetails(INIT_POOJARI_DETAILS);
-                navigate('/apps/poojaris');
+                navigate('/apps/poojari');
             } catch (err) {
                 setError('An error occurred while submitting the form.');
             }

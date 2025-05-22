@@ -3,9 +3,11 @@ import { useParams } from 'react-router-dom';
 import { Alert, Button, Card, Col, Modal, Row } from 'react-bootstrap';
 import { PageTitle, FormInput, FileUploader, FileType } from 'components';
 import usePoojariDetails from './hooks/usePoojariDetails';
-import { IPoojari, IPoojariRitual } from './types';
+import { IPoojari, IPoojariMedia, IPoojariRitual } from './types';
 import PoojariRitualTable from './PoojariRitualTable';
 import { getPoojariByIdAction } from 'redux/actions';
+import { upload } from '@testing-library/user-event/dist/upload';
+import { uploadImageApi } from 'helpers/api/products';
 
 type PoojariMedia = {
     thumbnailUrl: string;
@@ -72,45 +74,42 @@ const PoojariEdit = () => {
             if (media.length > 0) {
                 const [primary] = media.splice(index, 1);
                 media.unshift(primary);
+                // Update the profilePicture with the new primary image
+                return {
+                    ...prev,
+                    poojariMedia: media,
+                    profilePicture: primary.thumbnailUrl
+                };
             }
             return { ...prev, poojariMedia: media };
         });
     };
 
     // Handle image upload
-    const handleImageUpload = (files: FileType[]) => {
-        // Process each file in the array
-        files.forEach((file: any) => {
-            if (file.preview) {
-                // If file already has a preview, use it directly
-                setPoojariDetails((prev: IPoojari) => ({
-                    ...prev,
-                    poojariMedia: [
-                        ...(prev.poojariMedia || []),
-                        {
-                            thumbnailUrl: file.preview as string,
-                            images: [file.preview as string],
-                        },
-                    ],
-                }));
-            } else if (file.file) {
-                // If we have a File object, create a preview
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setPoojariDetails((prev: IPoojari) => ({
-                        ...prev,
-                        poojariMedia: [
-                            ...(prev.poojariMedia || []),
-                            {
-                                thumbnailUrl: reader.result as string,
-                                images: [reader.result as string],
-                            },
-                        ],
-                    }));
+    const handleImageUpload = async (files: FileType[]) => {
+        try {
+            const uploadPromises = files.map(async (file) => {
+                const response = await uploadImageApi({ file });
+                return response.data.uploadedUrl;
+            });
+
+            const uploadedUrls = await Promise.all(uploadPromises);
+
+            setPoojariDetails((prev: IPoojari) => {
+                const newMedia: IPoojariMedia = {
+                    thumbnailUrl: uploadedUrls[0],
+                    images: uploadedUrls,
                 };
-                reader.readAsDataURL(file.file);
-            }
-        });
+
+                return {
+                    ...prev,
+                    profilePicture: uploadedUrls[0],
+                    poojariMedia: [...(prev.poojariMedia || []), newMedia],
+                };
+            });
+        } catch (error) {
+            console.error('Error uploading images:', error);
+        }
     };
 
     const params = useParams<{ Id?: string }>();
@@ -122,7 +121,7 @@ const PoojariEdit = () => {
         <>
             <PageTitle
                 breadCrumbItems={[
-                    { label: 'Poojaris', path: '/apps/poojaris' },
+                    { label: 'Poojaris', path: '/apps/poojari' },
                     {
                         label: 'Edit Poojari', active: true,
                         path: ''

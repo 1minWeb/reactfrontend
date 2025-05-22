@@ -24,7 +24,7 @@ function getPoojaris(params: { limit: number; page: number }) {
 
 // Add a new poojari
 function addPoojari(params: { poojariDetails: PoojariDetails }) {
-    const baseUrl = '/poojari';
+    const baseUrl = '/poojari/createPoojari';
     return api.create(`${baseUrl}`, params);
 }
 

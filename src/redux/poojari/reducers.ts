@@ -24,7 +24,7 @@ type PoojariActionType = {
 
     payload: {
         actionType?: string;
-        data?: IPoojari[] | IRitual[] | IPoojari | IRitual | {};
+        data?: IPoojari[] | IRitual[] | IPoojari | IRitual | {} | any;
         error?: string;
     };
 };
@@ -46,7 +46,7 @@ const Poojaris = (state: State = INIT_STATE, action: PoojariActionType) => {
                     return {
                         ...state,
                         loading: false,
-                        poojaris: action.payload.data,
+                        poojaris: action.payload.data.poojaris,
                         results: action.payload.data,
                     };
                 }

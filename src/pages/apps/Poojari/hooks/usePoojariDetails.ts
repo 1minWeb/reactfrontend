@@ -10,9 +10,53 @@ export default function usePoojariDetails() {
 
     const [formErrors, setFormErrors] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    interface Results {
+        count: number;
+        poojaris: Poojaris[];
+        pagination: Pagination;
+    }
 
+    interface Pagination {
+        currentPage: number;
+        limit: number;
+    }
+
+    interface Poojaris {
+        id: number;
+        name: string;
+        profilePicture: string;
+        rating: number;
+        poojasDone: number;
+        experience: number;
+        location: string;
+        latitude: number;
+        longitude: number;
+        isAvailable: boolean;
+        isVerified: boolean;
+        languages: string[];
+        bio: string;
+        slots: Slot[];
+        rituals: Ritual[];
+    }
+
+    interface Ritual {
+        id: number;
+        name: string;
+        description: string;
+        category: null;
+        isActive: boolean;
+        defaultPrice: number;
+        createdAt: string;
+        updatedAt: string;
+    }
+
+    interface Slot {
+        time: string;
+        available: boolean;
+    }
     const {
         poojaris,
+        results,
         totalRecords,
         createdPoojari,
         isPoojariCreated,
@@ -20,14 +64,16 @@ export default function usePoojariDetails() {
         loading,
     }: {
         poojaris: IPoojari[];
+        results: Results;
         totalRecords: number;
         createdPoojari: IPoojari;
         isPoojariCreated: boolean;
         poojariDetailsById: IPoojari | null;
         loading: boolean;
     } = appSelector((state: any) => ({
-        poojaris: state.Poojaris?.results,
-        totalRecords: state.Poojaris?.totalRecords,
+        poojaris: state.Poojaris?.poojaris,
+        results: state.Poojaris?.results,
+        totalRecords: state.Poojaris?.results.count || 0,
         createdPoojari: state.Poojaris?.createdPoojari,
         isPoojariCreated: state.Poojaris?.isPoojariCreated,
         poojariDetailsById: state.Poojaris?.poojariDetailsById,

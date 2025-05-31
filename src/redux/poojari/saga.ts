@@ -14,9 +14,9 @@ import { PoojariActionTypes } from './constants';
  * Fetches poojaris from the API
  * @param {*} payload - limit, page, and tenantId (or other params if needed)
  */
-function* getPoojaris({ payload: { limit, page } }: any): SagaIterator {
+function* getPoojaris({ payload: { limit, page, sortType } }: any): SagaIterator {
     try {
-        const response = yield call(getPoojarisApi, { limit, page });
+        const response = yield call(getPoojarisApi, { limit, page, sortType });
         const poojaris = response.data;
         console.log('poojaris', poojaris);
         yield put(poojariApiResponseSuccess(PoojariActionTypes.GET_POOJARIS, poojaris));

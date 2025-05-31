@@ -17,8 +17,8 @@ interface PoojariDetails {
 }
 
 // Get all poojaris with pagination
-function getPoojaris(params: { limit: number; page: number }) {
-    const baseUrl = '/poojari';
+function getPoojaris(params: { limit: number; page: number; sortType: string }) {
+    const baseUrl = '/poojari/filtered';
     return api.get(`${baseUrl}`, params);
 }
 

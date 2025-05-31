@@ -8,15 +8,26 @@ import usePoojariDetails from './hooks/usePoojariDetails';
 import { getPoojaris } from 'redux/poojari/actions';
 
 const Poojaris = () => {
-    const { dispatch, poojaris, loading, error, handleDeleteAction } = usePoojariDetails();
+    const { dispatch, poojaris, loading, error, handleDeleteAction, totalRecords } = usePoojariDetails();
 
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [deletePoojariId, setDeletePoojariId] = useState<number | null>(null);
+    const [sortBy, setSortBy] = useState('id');
+    const [sortType, setSortType] = useState('desc');
 
-    const handlePageChange = (page: number) => setCurrentPage(page);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
     const handleSizeChange = (size: number) => {
         setPageSize(size);
+        setCurrentPage(1);
+    };
+
+    const handleSortChange = (column: string, order: string) => {
+        setSortBy(column);
+        setSortType(order);
         setCurrentPage(1);
     };
 
@@ -28,8 +39,13 @@ const Poojaris = () => {
     };
 
     useEffect(() => {
-        dispatch(getPoojaris({ limit: pageSize, page: currentPage }));
-    }, [dispatch, pageSize, currentPage]);
+        dispatch(getPoojaris({
+            limit: pageSize,
+            page: currentPage,
+            sortBy: sortBy,
+            sortType: sortType
+        }));
+    }, [dispatch, pageSize, currentPage, sortBy, sortType]);
 
     const columns: ReadonlyArray<Column<any>> = [
         {
@@ -40,18 +56,22 @@ const Poojaris = () => {
                     {row.original.name}
                 </Link>
             ),
+            defaultCanSort: true,
         },
         {
             Header: 'Location',
             accessor: 'location',
+            defaultCanSort: true,
         },
         {
             Header: 'Experience (yrs)',
             accessor: 'experience',
+            defaultCanSort: true,
         },
         {
             Header: 'Rating',
             accessor: 'rating',
+            defaultCanSort: true,
         },
         {
             Header: 'Available',
@@ -59,6 +79,7 @@ const Poojaris = () => {
             Cell: ({ row }: CellFormatter<IPoojari>) => (
                 <span>{row.original.isAvailable ? 'Yes' : 'No'}</span>
             ),
+            defaultCanSort: true,
         },
         {
             Header: 'Verified',
@@ -66,10 +87,12 @@ const Poojaris = () => {
             Cell: ({ row }: CellFormatter<IPoojari>) => (
                 <span>{row.original.isVerified ? 'Yes' : 'No'}</span>
             ),
+            defaultCanSort: true,
         },
         {
             Header: 'Action',
             accessor: 'action',
+            defaultCanSort: false,
             Cell: ({ row }: CellFormatter<IPoojari>) => (
                 <>
                     <Link to={`/apps/poojari/edit/${row.original.id}`} className="action-icon">
@@ -77,7 +100,7 @@ const Poojaris = () => {
                     </Link>
                     <Link to={`/apps/poojari/edit/${row.original.id}`} className="action-icon">
                         <i className="mdi mdi-square-edit-outline"></i>
-                    </Link>
+                    </Link >
                     <Link
                         to="#"
                         className="action-icon"
@@ -91,12 +114,6 @@ const Poojaris = () => {
                 </>
             ),
         },
-    ];
-
-    const sizePerPageList: PageSize[] = [
-        { text: '5', value: 5 },
-        { text: '10', value: 10 },
-        { text: '20', value: 20 },
     ];
 
     return (
@@ -131,16 +148,54 @@ const Poojaris = () => {
                                 <Table<IPoojari>
                                     columns={columns}
                                     data={poojaris}
-                                    pageSize={pageSize}
-                                    sizePerPageList={sizePerPageList}
                                     isSortable={true}
-                                    pagination={true}
                                     theadClass="table-light"
                                     searchBoxClass="mb-2"
+                                    isSearchable={true}
                                 />
                             ) : (
                                 <p className="text-center">No Poojaris available</p>
                             )}
+                            <div className="d-flex justify-content-between align-items-center mt-3">
+                                <div>
+                                    Showing {(currentPage - 1) * pageSize + 1} -{' '}
+                                    {Math.min(currentPage * pageSize, totalRecords)} of {totalRecords}
+                                </div>
+
+                                <div className="d-flex align-items-center">
+                                    <label className="me-2">Rows per page:</label>
+                                    <select
+                                        value={pageSize}
+                                        onChange={(e) => handleSizeChange(Number(e.target.value))}
+                                        className="form-select form-select-sm w-auto"
+                                    >
+                                        {[5, 10, 50, 100].map(size => (
+                                            <option key={size} value={size}>{size}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <Button
+                                        variant="light"
+                                        className="me-1"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                    // disabled={currentPage === 1}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <span>Page {currentPage}</span>
+                                    <Button
+                                        variant="light"
+                                        className="ms-1"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                    // disabled={currentPage * pageSize >= totalRecords}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </div>
+
                         </Card.Body>
                     </Card>
                 </Col>
